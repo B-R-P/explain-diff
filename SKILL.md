@@ -1,5 +1,5 @@
 ---
-name: converting-diffs-to-html
+name: explain-diff
 description: >
   Use when explaining code changes from git diffs, pull requests, branch
   comparisons, or commit histories to stakeholders who benefit from formatted
@@ -8,7 +8,7 @@ description: >
   risk callout asides. Not for raw terminal output or quick inline explanations.
 ---
 
-# Converting Diffs to HTML
+# Explain Diff
 
 ## Overview
 

@@ -1,4 +1,4 @@
-# Test Scenarios — converting-diffs-to-html
+# Test Scenarios — explain-diff
 
 ## Scenario 1: Medium PR with 5 files
 
