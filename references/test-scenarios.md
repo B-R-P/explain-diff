@@ -46,7 +46,7 @@
 
 ## Scenario 4: No `html_wrap.py` available
 
-**Setup:** Agent is on a machine or in a context where `.agents/scripts/html_wrap.py` does not exist.
+**Setup:** Agent is on a machine or in a context where `scripts/html_wrap.py` does not exist.
 
 **Expected behavior:**
 - Agent detects missing dependency

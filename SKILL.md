@@ -14,7 +14,7 @@ description: >
 
 Explain code changes by generating a self-contained HTML document with progressive disclosure — stakeholders can scan the executive summary, expand file details on demand, and immediately see risks. Uses a Python wrapper script to convert an authored HTML snippet into a complete, styled document.
 
-**REQUIRED TOOL:** `html_wrap.py` at `scripts/html_wrap.py` (inside this skill directory)
+**REQUIRED TOOL:** [`scripts/html_wrap.py`](./scripts/html_wrap.py) (inside this skill directory)
 
 ## When to Use
 
@@ -131,11 +131,11 @@ The executive summary's paragraph should end with a sentence scoping what is NOT
 - `<strong>` for emphasised concepts in bullet lists
 - `<details><summary>` per file — never flatten all changes into one big list
 
-**Full HTML structure rules** are in `references/html-structure.md`. Consult it when generating the snippet.
+**Full HTML structure rules** are in [`references/html-structure.md`](./references/html-structure.md). Consult it when generating the snippet.
 
 ### Phase 4 — Wrap with Script
 
-The wrapper script is at `scripts/html_wrap.py` (relative to this skill directory). Construct the full absolute path by joining the skill directory with `scripts/html_wrap.py`.
+The wrapper script is at [`scripts/html_wrap.py`](./scripts/html_wrap.py) (relative to this skill directory). Construct the full absolute path by joining the skill directory with `scripts/html_wrap.py`.
 
 ```bash
 python scripts/html_wrap.py snippet.html -o output.html --title "PR Review — <ref>"
@@ -177,8 +177,8 @@ git log --format="--- %h %s%n%b" HEAD~3..HEAD > /tmp/commit-bodies.txt
 git diff HEAD~3..HEAD > /tmp/diff.txt
 
 # Generate snippet → wrap → open
-python .agents/scripts/html_wrap.py /tmp/snippet.html -o review.html --title "PR Review"
-python .agents/scripts/html_wrap.py /tmp/snippet.html -o review.html --open
+python scripts/html_wrap.py /tmp/snippet.html -o review.html --title "PR Review"
+python scripts/html_wrap.py /tmp/snippet.html -o review.html --open
 ```
 
 ## Common Mistakes
