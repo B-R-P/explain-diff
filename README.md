@@ -19,5 +19,5 @@ When an agent uses this skill, it should create an HTML review with:
 - An executive summary
 - A before/after impact table
 - Expandable file breakdowns
-- A risk callout, even when the risk is “None identified”
+- A caveats & tradeoffs callout, even when it states “None identified”
 

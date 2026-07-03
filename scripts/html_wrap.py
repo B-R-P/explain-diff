@@ -89,6 +89,7 @@ DEFAULT_STYLE = """
     .badge-danger  { background: #dc2626; }
     .badge-info    { background: #2563eb; }
     .badge-neutral { background: #6b7280; }
+    p.stats { font-size: 0.8rem; color: #6b7280; margin: 0.25rem 0 0.75rem; letter-spacing: 0.02em; }
     table.impact {
       width: 100%; border-collapse: collapse; font-size: 0.88rem;
       background: #fff; border-radius: 8px; overflow: hidden;
@@ -107,6 +108,13 @@ DEFAULT_STYLE = """
     aside.warn h4 { margin: 0 0 0.5rem; color: #92400e; }
     aside.warn ul { margin: 0; padding-left: 1.25rem; }
     aside.warn ul li { margin-bottom: 0.35rem; }
+    aside.note {
+      margin: 1.75rem 0; padding: 1.1rem 1.25rem;
+      border-left: 4px solid #2563eb; background: #eff6ff; border-radius: 8px; font-size: 0.9rem;
+    }
+    aside.note h3 { margin: 0 0 0.5rem; color: #1e40af; }
+    aside.note ul { margin: 0; padding-left: 1.25rem; }
+    aside.note ul li { margin-bottom: 0.35rem; }
     @media print {
       body { color: #000; background: #fff; }
       details { border: 1px solid #ccc; break-inside: avoid; }
@@ -131,8 +139,11 @@ DEFAULT_STYLE = """
       table.impact { background: #1a1d26; }
       table.impact th { background: #1e2129; border-bottom-color: #2c2f3a; }
       table.impact td { border-bottom-color: #2c2f3a; }
+      p.stats { color: #9ca3af; }
       aside.warn { background: #2a2416; border-left-color: #f59e0b; }
       aside.warn h4 { color: #fbbf24; }
+      aside.note { background: #1a2332; border-left-color: #3b82f6; }
+      aside.note h3 { color: #93c5fd; }
       .badge-warning { background: #d97706; }
     }
   </style>"""

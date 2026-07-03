@@ -21,6 +21,7 @@ Use ONLY `<section>` as the root wrapper. Never `<div>`, `<article>`, or `<main>
 | Purpose | Tag | Required Attributes |
 |---------|-----|---------------------|
 | Executive summary header | `<header>` | — |
+| Stats bar | `<p class="stats">` | `class="stats"` |
 | Section heading | `<h2>` | — |
 | Sub-heading | `<h3>` | — |
 | Paragraph | `<p>` | — |
@@ -28,8 +29,8 @@ Use ONLY `<section>` as the root wrapper. Never `<div>`, `<article>`, or `<main>
 | File accordion | `<details>` | — |
 | File path label | `<summary><var>path</var></summary>` | — |
 | Change list | `<ul><li>` | — |
-| Risk callout | `<aside class="warn">` | `class="warn"` |
-| Risk heading | `<h4>` | — |
+| Caveats & Tradeoffs callout | `<aside class="note">` | `class="note"` |
+| Caveats heading | `<h3>` | — |
 
 ## Badge Classes
 
@@ -77,26 +78,26 @@ Always 3 columns: Metric | Before | After.
 
 Limit to 3-7 rows. Every row must contrast a single behavioural or architectural difference.
 
-## Risk Aside Shape
+## Caveats & Tradeoffs Aside Shape
 
 ```html
-<aside class="warn">
-  <h4>Risks &amp; Considerations</h4>
+<aside class="note">
+  <h3>Caveats &amp; Tradeoffs</h3>
   <ul>
-    <li><strong>Decoder form pre-fill removed</strong> — description of the risk…</li>
+    <li><strong>Decision: chunk size set to 10</strong> — avoids re-flow latency spikes; may undershoot for very large datasets. Revisit if users report frequent load-more clicks.</li>
   </ul>
 </aside>
 ```
 
 Place immediately after the file breakdown section — never inside a `<details>`.
 
-For zero-risk reviews, keep the `<aside>` with a single "None identified" entry:
+For trivial changes with no meaningful design decisions, keep the `<aside>` with a single "None identified" entry:
 
 ```html
-<aside class="warn">
-  <h4>Risks &amp; Considerations</h4>
+<aside class="note">
+  <h3>Caveats &amp; Tradeoffs</h3>
   <ul>
-    <li><strong>None identified</strong> — This change is well-covered by existing tests and has no external impact.</li>
+    <li><strong>None identified</strong> — mechanical change with no behavioral impact and no design alternatives considered.</li>
   </ul>
 </aside>
 ```
@@ -162,6 +163,16 @@ Use this sparingly — only when 6+ bullets would otherwise make a flat list har
 ```
 
 The first sentence must stand alone — readers expand nothing and still understand the change.
+
+## Stats Bar
+
+A one-liner in the `<header>` giving the reader an instant sense of change magnitude. Placed between the badge and the `<h2>`:
+
+```html
+<p class="stats">3 files · +142/−31 · 2 commits</p>
+```
+
+Always include: files changed, net lines added/removed, commit count. Use `·` (middle dot) as separator. Omit the stats bar only if the diff has a single file and a single commit (redundant with the badge).
 
 ## Dark Mode Compatibility
 

@@ -5,7 +5,7 @@ description: >
   comparisons, or commit histories to stakeholders who benefit from formatted
   documentation. Use when the output needs progressive disclosure (expandable
   file sections), semantic HTML structure, before/after comparison tables, and
-  risk callout asides. Not for raw terminal output or quick inline explanations.
+  caveats & tradeoffs asides. Not for raw terminal output or quick inline explanations.
 ---
 
 # Explain Diff
@@ -35,7 +35,7 @@ Explain code changes by generating a self-contained HTML document with progressi
 2. **Structure the content** — organise into executive summary, impact table, file breakdown, risks
 3. **Write the HTML snippet** — author a `<section>` fragment with semantic tags
 4. **Wrap with script** — run `html_wrap.py` to produce a complete HTML document
-5. **Verify the output** — open in browser, check accordions, table, and risk aside
+5. **Verify the output** — open in browser, check accordions, table, and caveats aside
 
 ### Phase 1 — Analyze the Diff
 
@@ -68,10 +68,10 @@ Organise the explanation into these sections (in order):
 
 | Section | Purpose |
 |---------|---------|
-| Executive summary | 2-sentence what + why. First line a badge for change scope. |
+| Executive summary | 2-sentence what + why. First line a badge for change scope, followed by a stats bar (files · +N/−M · commits). |
 | Impact table | Before-vs-After comparison for key architectural/behavioural metrics. Limit to 3-7 rows — one behavioural difference per row. Prioritize user-facing behavior changes over internal refactors. If stuck, choose rows that answer "what does a user or API consumer notice?" For very small diffs (1 file, <20 lines), 2-4 rows is appropriate. If the diff has no user-facing behavior change (pure refactor, rename, config-only, revert), state that explicitly in the executive summary and focus the impact table on developer-facing metrics (API shape, import paths, build steps). Limit to 2-4 rows. |
 | File breakdown | One `<details>` accordion per file (or per group of related files) with bulleted change list. See grouping guidance below. |
-| Risks aside | `<aside class="warn">` for regressions, state changes, missing tests, edge cases. If no risks apply, include the `<aside>` with the text "None identified" — the section must still be present. For very small diffs, limit to 1-2 real risks — do not manufacture risks just to fill space. |
+| Caveats & Tradeoffs | `<aside class="note">` design decisions made, tradeoffs accepted, alternatives considered, and footguns for future editors touching this code. If no meaningful caveats apply, include the `<aside>` with the text "None identified" — the section must still be present. For very small diffs, limit to 1-2 real caveats — do not manufacture them just to fill space. |
 
 Before writing, **group related files by concern**:
 - **Pure-propagation passthroughs** (e.g., forwarding a prop through 3 components, or 15 files with the same mechanical import rename) — merge into a single `<details>` accordion. Use `<h3>` sub-headings to separate per-file details.
@@ -86,8 +86,9 @@ Write a fragment beginning with `<section>` — no `<html>`, `<head>`, `<body>` 
 
 ```
 <section>                              # root wrapper
-  <header>                             # executive summary (badge + h2 + p)
+  <header>                             # executive summary (badge + stats + h2 + p)
     <span class="badge badge-*">
+    <p class="stats">                  # "3 files · +142/−31 · 2 commits"
     <h2>
     <p>                                # what changed + why, and what's NOT changing
   </header>
@@ -104,8 +105,8 @@ Write a fragment beginning with `<section>` — no `<html>`, `<head>`, `<body>` 
         <ul><li>...
     </section>
 
-  <aside class="warn">                 # risks
-    <h4>Risks
+  <aside class="note">                 # caveats & tradeoffs
+    <h3>Caveats &amp; Tradeoffs
     <ul><li>...
   </aside>
 </section>
@@ -156,14 +157,14 @@ The script:
 - Confirm the executive summary reads correctly without expanding anything.
 - Confirm the badge class matches the change scope (see badge colour conventions).
 - Click every `<details>` accordion — each opens and closes.
-- Confirm `<aside class="warn">` renders with the amber left border.
+- Confirm `<aside class="note">` renders with the blue left border.
 - Confirm the `<table class="impact">` columns align.
 
 **Content-quality checks:**
 - Does every impact row contrast exactly **one** behavioral or architectural difference?
-- Is every risk **actionable** (not purely hypothetical)?
+- Is every caveat a real design decision or tradeoff (not manufactured)?
 - Does the first sentence of the executive summary make sense on its own?
-- Are any red flags from the commit audit (reverts, missing tests) reflected in the risks section?
+- Are any red flags from the commit audit (reverts, missing tests) reflected in the caveats section?
 - Does the primary feature description explain the mechanism or flow, not just a checklist of added pieces?
 - Does the executive summary anchor scope by acknowledging what stayed the same?
 
@@ -186,10 +187,10 @@ python .agents/scripts/html_wrap.py /tmp/snippet.html -o review.html --open
 |---------|-----|
 | Writing a full `<html>` document by hand | Write only the `<section>` fragment; let the script wrap it |
 | Using `<div>` for everything | Use semantic tags: `<header>`, `<section>`, `<details>`, `<aside>` |
-| Burying the risk assessment at the bottom of a file section | Pull risks into a top-level `<aside class="warn">` — it's the first thing a reviewer needs after the summary |
+| Burying caveats & tradeoffs inside a file accordion | Pull them into a top-level `<aside class="note">` — they're important context for anyone touching this code later |
 | Forgetting `class="impact"` on the table | The default stylesheet only styles `table.impact` — plain `<table>` gets no formatting |
 | One massive `<ul>` with all 40 changes | Group by file with `<details>` — one accordion per file |
-| Using `style="..."` for everything | Use the semantic classes (`.badge-*`, `.warn`) — they come with dark mode support |
+| Using `style="..."` for everything | Use the semantic classes (`.badge-*`, `.note`) — they come with dark mode support |
 | Describing the main feature as disconnected bullet points without showing how pieces connect | Use prose or numbered steps showing the end-to-end flow (trigger → state → output) |
 | Listing only what changed without anchoring what stayed the same | End the executive summary with a sentence scoping what's not affected |
 | Writing impact rows for a pure refactor as if behavior changed | State "no user-facing change" and focus impact on API/developer metrics instead |
@@ -202,7 +203,7 @@ Stop and re-read the skill if you catch yourself thinking:
 - "The HTML rules are too much for a small diff"
 - "I can inline all styles since the user won't notice"
 - "This change is simple enough to skip the executive summary"
-- "I'll put the risk note inside a file details block"
+- "I'll put the caveats note inside a file details block"
 - "The script path doesn't resolve, I'll just hand-write the HTML directly"
 
 **All of these mean full output quality is compromised. Use the full workflow.**
@@ -217,4 +218,4 @@ Stop and re-read the skill if you catch yourself thinking:
 | "I don't need the wrapper script, I'll hand-write the HTML" | Hand-writing full HTML duplicates the script's work and introduces inconsistency. Always use the script. |
 | "The script path doesn't resolve, I'll just hand-write it directly" | The script is at `scripts/html_wrap.py` relative to the skill directory. Join the skill directory path with `scripts/html_wrap.py` to get the absolute path. If it truly doesn't exist, stop and inform the user — do not adapt. |
 | "The summary table takes too long to write" | 3-5 rows take 2 minutes and save readers 10x that in comprehension time. |
-| "Risks section is negative / I don't want to highlight problems" | The risks section builds trust. Omitting it makes the review look incomplete. |
+| "Caveats section is negative / I don't want to highlight tradeoffs" | The caveats section builds trust. Omitting it makes the review look incomplete. |
