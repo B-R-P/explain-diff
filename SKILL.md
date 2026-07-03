@@ -144,16 +144,15 @@ python scripts/html_wrap.py snippet.html -o output.html --title "PR Review — <
 
 The script:
 - Injects a `<meta viewport>`, `<title>`, and default stylesheet
-- Supports `--serve` for instant browser preview
 - Supports `--style path/to.css` for custom themes (replaces the default stylesheet entirely — you must include all base styles + dark mode variant or they will be lost)
 - Supports `--append-style path/to.css` to layer custom styles on top of defaults (additive, does not replace anything)
-- Supports `--no-open` to suppress browser launch when using `--serve`
+- Supports `--open` to open the output file in the default browser (requires `-o`)
 - Forwards stdin/stdout for pipe workflows: `cat snippet.html | python html_wrap.py - > out.html`
 
 ### Phase 5 — Verify the Output
 
 **Structural checks:**
-- Open the HTML file in a browser (or use `--serve`).
+- Open the HTML file in a browser.
 - Confirm the executive summary reads correctly without expanding anything.
 - Confirm the badge class matches the change scope (see badge colour conventions).
 - Click every `<details>` accordion — each opens and closes.
@@ -176,11 +175,9 @@ git log --oneline HEAD~3..HEAD > /tmp/commits.txt
 git log --format="--- %h %s%n%b" HEAD~3..HEAD > /tmp/commit-bodies.txt
 git diff HEAD~3..HEAD > /tmp/diff.txt
 
-# Generate snippet → wrap
+# Generate snippet → wrap → open
 python .agents/scripts/html_wrap.py /tmp/snippet.html -o review.html --title "PR Review"
-
-# Instant preview
-python .agents/scripts/html_wrap.py /tmp/snippet.html --serve
+python .agents/scripts/html_wrap.py /tmp/snippet.html -o review.html --open
 ```
 
 ## Common Mistakes

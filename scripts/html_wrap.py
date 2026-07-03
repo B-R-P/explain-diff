@@ -5,7 +5,8 @@ html-wrap — Convert an HTML snippet into a standalone, styled HTML document.
 Usage:
     python html_wrap.py < input.html > output.html
     python html_wrap.py --title "My PR Review" --style github snippet.html -o review.html
-    python html_wrap.py --serve snippet.html          # preview in browser
+    python html_wrap.py --open snippet.html -o review.html   # open in browser
+
     echo "<h1>Hello</h1>" | python html-wrap.py -     # read from stdin
 
 As a module:
@@ -18,12 +19,8 @@ from __future__ import annotations
 
 import argparse
 import html
-import http.server
-import os
 import pathlib
-import socketserver
 import sys
-import tempfile
 import webbrowser
 
 TEMPLATE = """\
@@ -175,33 +172,6 @@ def wrap_snippet(
     return TEMPLATE.format(title=html.escape(title), style_block=style_block, content=content)
 
 
-def serve_document(doc: str, port: int = 0, no_open: bool = False) -> None:
-    """Serve the HTML string on a temporary local server and open the browser."""
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False, encoding="utf-8") as f:
-        f.write(doc)
-        tmp = f.name
-
-    class _Handler(http.server.SimpleHTTPRequestHandler):
-        def __init__(self, *a, **kw):
-            super().__init__(*a, directory=os.path.dirname(tmp), **kw)
-
-        def log_message(self, fmt, *args):
-            pass  # quieter
-
-    with socketserver.TCPServer(("127.0.0.1", port or 0), _Handler) as httpd:
-        host, port = httpd.server_address
-        url = f"http://{host}:{port}/{os.path.basename(tmp)}"
-        print(f"  Serving at {url}", file=sys.stderr)
-        if not no_open:
-            webbrowser.open(url)
-        try:
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            print("\n  Shutting down.", file=sys.stderr)
-        finally:
-            pathlib.Path(tmp).unlink(missing_ok=True)
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Convert an HTML snippet into a standalone HTML document.",
@@ -226,27 +196,15 @@ def main() -> None:
         help="Path to a CSS/<style> file to append after the default (or custom --style) stylesheet.",
     )
     parser.add_argument(
-        "--no-open",
-        action="store_true",
-        help="Do not open browser when used with --serve.",
-    )
-    parser.add_argument(
         "--minify",
         action="store_true",
         help="Strip leading/trailing whitespace from content (not full HTML minification).",
     )
     parser.add_argument(
-        "--serve",
+        "--open",
         action="store_true",
-        help="Preview in browser on a temporary HTTP server.",
+        help="Open the output file in the default browser (requires -o).",
     )
-    parser.add_argument(
-        "--port",
-        type=int,
-        default=0,
-        help="Port for --serve (default: random available port).",
-    )
-
     args = parser.parse_args()
     content = read_source(args.source)
 
@@ -265,11 +223,12 @@ def main() -> None:
         minify=args.minify,
     )
 
-    if args.serve:
-        serve_document(doc, port=args.port, no_open=args.no_open)
-    elif args.output:
+    if args.output:
         pathlib.Path(args.output).write_text(doc, encoding="utf-8")
         print(f"Wrote {len(doc):,} bytes to {args.output}", file=sys.stderr)
+        if args.open:
+            url = pathlib.Path(args.output).resolve().as_uri()
+            webbrowser.open(url)
     else:
         sys.stdout.write(doc)
         sys.stdout.flush()
