@@ -2,14 +2,23 @@
 
 `explain-diff` is an agent skill that turns Git diffs, pull requests, branch comparisons, or commit histories into self-contained HTML review documents.
 
+## Installation
+
+```bash
+npx skills add B-R-P/explain-diff
+```
+
 ## What is in this repo
 
 ```text
-SKILL.md                    # Instructions agents should follow
-scripts/html_wrap.py         # Converts an HTML snippet into a complete document
-scripts/README.md            # Script-specific notes
-references/html-structure.md # Required HTML structure for generated reviews
-references/test-scenarios.md # Scenarios for checking agent behavior
+skills/explain-diff/
+├── SKILL.md                    # Instructions agents should follow
+├── scripts/
+│   ├── html_wrap.py            # Converts an HTML snippet into a complete document
+│   └── README.md               # Script-specific notes
+└── references/
+    ├── html-structure.md       # Required HTML structure for generated reviews
+    └── test-scenarios.md       # Scenarios for checking agent behavior
 ```
 
 ## What agents produce
