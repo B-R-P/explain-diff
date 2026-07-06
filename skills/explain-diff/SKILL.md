@@ -39,7 +39,7 @@ Explain code changes by generating a self-contained HTML document with progressi
 
 ### Phase 1 — Analyze the Diff
 
-1. Run `git log --oneline <ref>` to understand commit scope. For merge commits, use `<ref>^` (first parent) as the comparison base.
+1. Run `git log --oneline <ref>` to understand commit scope. For merge commits, use `<ref>^` (first parent) as the comparison base. Count only non-merge commits in the branch range — use `git log --oneline --no-merges <ref>^1..<ref>^2` for merge commits. If the count includes merge commits, annotate as `X feature commits (+Y merges)`.
 2. Run `git log --format="--- %h %s%n%b" <range>` to read full commit bodies (description, rationale, ticket links, breaking change notes). On Unix, pipe through `head -200` to limit output; on Windows (PowerShell), use `Select-Object -First 200`.
 3. Run `git diff <range>` or `git show --stat <commit>` to see files changed and line counts. For merge commits, diff against the first parent: `git diff <ref>^..<ref>`.
 4. Read full diff. Categorise each change:
@@ -49,6 +49,11 @@ Explain code changes by generating a self-contained HTML document with progressi
    - **Style/UI** — visual or CSS changes
    - **Bug fix** — defect correction
    - **Infrastructure** — build, config, CI, dependencies
+
+   **Additional checks during diff reading:**
+   - For guard/condition changes in async contexts: compare timing semantics of old vs new guard expressions. Could there be a window where neither guard is true but work is still in flight?
+   - If the diff includes `\ No newline at end of file` markers, compare both old and new sections before claiming a trailing-newline fix — the marker appears on both sides.
+
 5. **Audit commit history (subjects + bodies) for red flags**:
    - **Reverts** — indicate churn or mistaken approach; investigate and flag in risks
    - **WIP / stash commits** — suggest incomplete work; verify nothing is missing
@@ -71,12 +76,16 @@ Organise the explanation into these sections (in order):
 | Executive summary | 2-sentence what + why. First line a badge for change scope, followed by a stats bar (files · +N/−M · commits). |
 | Impact table | Before-vs-After comparison for key architectural/behavioural metrics. Limit to 3-7 rows — one behavioural difference per row. Prioritize user-facing behavior changes over internal refactors. If stuck, choose rows that answer "what does a user or API consumer notice?" For very small diffs (1 file, <20 lines), 2-4 rows is appropriate. If the diff has no user-facing behavior change (pure refactor, rename, config-only, revert), state that explicitly in the executive summary and focus the impact table on developer-facing metrics (API shape, import paths, build steps). Limit to 2-4 rows. |
 | File breakdown | One `<details>` accordion per file (or per group of related files) with bulleted change list. See grouping guidance below. |
-| Caveats & Tradeoffs | `<aside class="note">` design decisions made, tradeoffs accepted, alternatives considered, and footguns for future editors touching this code. If no meaningful caveats apply, include the `<aside>` with the text "None identified" — the section must still be present. For very small diffs, limit to 1-2 real caveats — do not manufacture them just to fill space. |
+| Caveats & Tradeoffs | `<aside class="note">` design decisions made, tradeoffs accepted, alternatives considered, and footguns for future editors touching this code. If a bullet describes intended behavior without a risk angle, it's not a caveat. If no meaningful caveats apply, include the `<aside>` with the text "None identified" — the section must still be present. For very small diffs, limit to 1-2 real caveats — do not manufacture them just to fill space. |
+
+**Executive summary framing for merge commits:** If the diff is from a merge commit that merges a feature branch, begin the executive summary with "This branch" or "This change set" — not "This merge" — to avoid implying one commit did all the work.
 
 Before writing, **group related files by concern**:
 - **Pure-propagation passthroughs** (e.g., forwarding a prop through 3 components, or 15 files with the same mechanical import rename) — merge into a single `<details>` accordion. Use `<h3>` sub-headings to separate per-file details.
 - **Files with independent logic changes** — each gets its own `<details>` accordion.
 - When deciding: if the change is the same mechanical operation repeated across files, merge them. If each file has unique logic changes, keep them separate.
+- If supporting files serve entirely different architectural concerns (data layer vs navigation vs configuration), split them or use `<h3>` sub-headings naming each concern explicitly. A generic label like "Supporting layer" invites the reader to skip over an important nav/routing change.
+- When a change moves from a computed/view-derived value to a data-source value, call that out explicitly: "This decouples the component from internal computation and ties the behavior to the data model."
 
 For the file with the most significant logic change, describe the end-to-end flow rather than a flat bullet list. Use prose or numbered steps showing the progression (trigger → state transition → side effect → output). Reserve bullets for supporting details.
 
@@ -114,15 +123,19 @@ Write a fragment beginning with `<section>` — no `<html>`, `<head>`, `<body>` 
 
 The executive summary's paragraph should end with a sentence scoping what is NOT changing (e.g., "Existing chart generation and clearing are unaffected."). This prevents readers from assuming broader impact.
 
-**Badge colour conventions:**
+**Badge colour conventions (PR scope header badge):**
 
 | Scope | Class |
 |-------|-------|
 | Breaking / major rewrite | `badge badge-danger` |
 | New feature | `badge badge-success` |
 | Refactor | `badge badge-info` |
-| Minor / mix of types | `badge badge-warning` |
+| Mixed | `badge badge-warning` |
 | Bug fix / dependency | `badge badge-neutral` |
+
+Use `badge-info` for file-level badges. Never use `badge-danger` at file level — it is reserved for the PR scope header.
+
+For files with additions only (no deletions), state explicitly in the description: "All N lines are new — existing styles were untouched."
 
 **Inline element usage:**
 - `<var>` for file paths, function names, variable names
@@ -162,11 +175,14 @@ The script:
 
 **Content-quality checks:**
 - Does every impact row contrast exactly **one** behavioral or architectural difference?
-- Is every caveat a real design decision or tradeoff (not manufactured)?
+- Is every caveat a real risk, downside, or future-edit footgun (not happy-path description)?
 - Does the first sentence of the executive summary make sense on its own?
 - Are any red flags from the commit audit (reverts, missing tests) reflected in the caveats section?
 - Does the primary feature description explain the mechanism or flow, not just a checklist of added pieces?
 - Does the executive summary anchor scope by acknowledging what stayed the same?
+- **Permission/access-control scan:** Check if the diff contains permission or access-control changes (role checks, route guards, conditional rendering flags). Even 1–2 line changes here often carry more behavioral weight than their diff size suggests.
+- **Accessibility scan:** If the diff introduces CSS transitions or animations, verify the output includes or acknowledges `@media (prefers-reduced-motion: reduce)` support.
+- **Fact-check pass:** Re-read the diff to verify: file paths, line counts, variable names, code snippets, numeric counts, and formatting strings in the impact table and caveats are accurate. If a caveat references a specific constant or value, confirm it exists in the diff.
 
 ## Quick Reference
 
@@ -175,6 +191,12 @@ The script:
 git log --oneline HEAD~3..HEAD > /tmp/commits.txt
 git log --format="--- %h %s%n%b" HEAD~3..HEAD > /tmp/commit-bodies.txt
 git diff HEAD~3..HEAD > /tmp/diff.txt
+
+# Merge commit: feature branch commits (non-merge only)
+git log --oneline --no-merges <ref>^1..<ref>^2 > /tmp/commits.txt
+
+# Merge commit: full diff against first parent
+git diff <ref>^..<ref> > /tmp/diff.txt
 
 # Generate snippet → wrap → open
 python scripts/html_wrap.py /tmp/snippet.html -o review.html --title "PR Review"
@@ -194,6 +216,7 @@ python scripts/html_wrap.py /tmp/snippet.html -o review.html --open
 | Describing the main feature as disconnected bullet points without showing how pieces connect | Use prose or numbered steps showing the end-to-end flow (trigger → state → output) |
 | Listing only what changed without anchoring what stayed the same | End the executive summary with a sentence scoping what's not affected |
 | Writing impact rows for a pure refactor as if behavior changed | State "no user-facing change" and focus impact on API/developer metrics instead |
+| Misreading `\ No newline at end of file` as an EOF fix | Compare both old and new sections of the diff — the marker appears on both sides; neither side may have changed |
 
 ## Red Flags
 
@@ -205,6 +228,7 @@ Stop and re-read the skill if you catch yourself thinking:
 - "This change is simple enough to skip the executive summary"
 - "I'll put the caveats note inside a file details block"
 - "The script path doesn't resolve, I'll just hand-write the HTML directly"
+- "This merge adds..." when the diff is a feature-branch merge (use "This branch" or "This change set")
 
 **All of these mean full output quality is compromised. Use the full workflow.**
 **For script-not-found specifically:** Stop and inform the user. Do NOT adapt or hand-write fallback HTML.
