@@ -38,7 +38,7 @@ Use ONLY `<section>` as the root wrapper. Never `<div>`, `<article>`, or `<main>
 <span class="badge badge-danger">Breaking</span>
 <span class="badge badge-success">Feature</span>
 <span class="badge badge-info">Refactor</span>
-<span class="badge badge-warning">Minor</span>
+<span class="badge badge-warning">Mixed</span>
 <span class="badge badge-neutral">Chore</span>
 ```
 
@@ -76,7 +76,7 @@ Always 3 columns: Metric | Before | After.
 </table>
 ```
 
-Limit to 3-7 rows. Every row must contrast a single behavioural or architectural difference.
+Limit to 3-7 rows (2-4 for very small diffs — 1 file, <20 lines — or diffs with no user-facing behavior change). Every row must contrast a single behavioural or architectural difference.
 
 ## Caveats & Tradeoffs Aside Shape
 
@@ -129,7 +129,7 @@ Add the line-count change as a badge inside `<summary>` to let readers quickly s
 </details>
 ```
 
-Badge class follows the same convention as the top-level badge (`.badge-success`, `.badge-info`, etc.) but should match the *overall character of the changes in that file* — not necessarily the PR's top-level scope.
+Prefer `badge-info` as a safe default for file-level badges. Avoid `badge-danger` at file level — it is reserved for the top-level PR scope badge. If a file is purely additive (all new feature code), `badge-success` may be more informative than a neutral badge.
 
 ## Sub-headings in Accordions
 
@@ -156,7 +156,7 @@ Use this sparingly — only when 6+ bullets would otherwise make a flat list har
 
 ```html
 <header>
-  <span class="badge badge-warning">Minor</span>
+  <span class="badge badge-warning">Mixed</span>
   <h2>Incremental grouped-row loading, table scroll containment, …</h2>
   <p>One or two sentences explaining what the PR achieves and its business impact.</p>
 </header>

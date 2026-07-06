@@ -58,7 +58,7 @@ Explain code changes by generating a self-contained HTML document with progressi
    - **Reverts** — indicate churn or mistaken approach; investigate and flag in risks
    - **WIP / stash commits** — suggest incomplete work; verify nothing is missing
    - **Missing test commits** — if logic changes but no tests, flag in risks
-    - **Merge commits into the feature branch** — normal; just note the branch had to catch up with dev
+   - **Merge commits into the feature branch** — normal; just note the branch had to catch up with dev
 
 6. **Check broader context if the diff alone isn't clear** — if the
    diff is ambiguous (e.g., a rename without surrounding lines, a
@@ -108,7 +108,7 @@ Write a fragment beginning with `<section>` — no `<html>`, `<head>`, `<body>` 
       <tbody>...
   </section>
 
-    <section>                            # file breakdown
+  <section>                            # file breakdown
       <details><summary><var>path</var> <span class="badge badge-info">+N/−M</span>
         <h3>Subsystem name</h3>           # optional: group related changes in large files
         <ul><li>...
@@ -133,7 +133,7 @@ The executive summary's paragraph should end with a sentence scoping what is NOT
 | Mixed | `badge badge-warning` |
 | Bug fix / dependency | `badge badge-neutral` |
 
-Use `badge-info` for file-level badges. Never use `badge-danger` at file level — it is reserved for the PR scope header.
+Prefer `badge-info` as a safe default for file-level badges. Avoid `badge-danger` at file level — it is reserved for the PR scope header. If a file is purely additive (all new feature code), `badge-success` may be more informative than a neutral badge.
 
 For files with additions only (no deletions), state explicitly in the description: "All N lines are new — existing styles were untouched."
 
