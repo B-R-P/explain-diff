@@ -139,14 +139,29 @@ Prefer `badge-info` as a safe default for file-level badges. Avoid `badge-danger
 
 For files with additions only (no deletions), state explicitly in the description: "All N lines are new — existing styles were untouched."
 
+**Semantic tag mapping:**
+
+| Purpose | Tag | Required Attributes |
+|---------|-----|---------------------|
+| Executive summary header | `<header>` | — |
+| Stats bar | `<p class="stats">` | `class="stats"` |
+| Commit evolution arc | `<p>` | — |
+| Section heading | `<h2>` | — |
+| Sub-heading | `<h3>` | — |
+| Paragraph | `<p>` | — |
+| Impact table | `<table class="impact">` | `class="impact"` |
+| File accordion | `<details>` | — |
+| File path label | `<summary><var>path</var></summary>` | — |
+| Change list | `<ul><li>` | — |
+| Caveats callout | `<aside class="note">` | `class="note"` |
+| Caveats heading | `<h3>` | — |
+
 **Inline element usage:**
 - `<var>` for file paths, function names, variable names
 - `<kbd>` for terminal commands, config values, literal constants
 - `<code>` for inline code snippets (use `<pre><code>` for blocks)
 - `<strong>` for emphasised concepts in bullet lists
 - `<details><summary>` per file — never flatten all changes into one big list
-
-**Full HTML structure rules** are in [`references/html-structure.md`](./references/html-structure.md). Consult it when generating the snippet.
 
 ### Phase 4 — Wrap with Script
 
@@ -164,6 +179,8 @@ The script:
 - Supports `--append-style path/to.css` to layer custom styles on top of defaults (additive, does not replace anything)
 - Supports `--open` to open the output file in the default browser (requires `-o`)
 - Forwards stdin/stdout for pipe workflows: `cat snippet.html | python html_wrap.py - > out.html`
+
+**Dark mode compatibility:** The default stylesheet includes `@media (prefers-color-scheme: dark)`. If you use `--style` to replace it, your custom CSS must include a dark mode variant.
 
 ### Phase 5 — Verify the Output
 
@@ -224,33 +241,26 @@ python scripts/html_wrap.py /tmp/snippet.html -o review.html --open
 | Listing only what changed without anchoring what stayed the same | End the executive summary paragraph with **Out of scope:** followed by what's not affected |
 | Writing impact rows for a pure refactor as if behavior changed | State "no user-facing change" and focus impact on API/developer metrics instead |
 | Misreading `\ No newline at end of file` as an EOF fix | Compare both old and new sections of the diff — the marker appears on both sides; neither side may have changed |
+| Inline `<style>` blocks in the snippet | The wrapper script injects all styles — never embed `<style>` tags in the snippet |
+| Empty `<details>` accordion | If a file has no meaningful changes to list, skip it |
+| `<br>` for layout | Use CSS or flexbox instead |
+| Nested `<section>` without a parent heading | Each `<section>` should have a logical heading or be preceded by one |
 
-## Red Flags
-
-Stop and re-read the skill if you catch yourself thinking:
-
-- "I'll just write a quick Markdown list instead"
-- "The HTML rules are too much for a small diff"
-- "I can inline all styles since the user won't notice"
-- "This change is simple enough to skip the executive summary"
-- "I'll skip the evolution arc, the stats bar already shows the count"
-- "A trailing sentence about scope is fine, the **Out of scope:** marker feels mechanical"
-- "I'll put the caveats note inside a file details block"
-- "The script path doesn't resolve, I'll just hand-write the HTML directly"
-- "This merge adds..." when the diff is a feature-branch merge (use "This branch" or "This change set")
-
-**All of these mean full output quality is compromised. Use the full workflow.**
-**For script-not-found specifically:** Stop and inform the user. Do NOT adapt or hand-write fallback HTML.
-
-## Rationalization Table
+## Red Flags & Rationalizations
 
 | Rationalization | Redirect |
 |----------------|----------|
 | "The diff is small, markdown is fine" | HTML with progressive disclosure is always better for non-terminal audiences. The script makes it zero effort. |
+| "The HTML rules are too much for a small diff" | All phases apply regardless of diff size — impact table has fewer rows, caveats may be "None identified." |
+| "I can inline all styles since the user won't notice" | Use semantic classes (`.badge-*`, `.note`) — they include dark mode support. The script injects the stylesheet. |
+| "This change is simple enough to skip the executive summary" | The executive summary is the first thing stakeholders read. Without it, the review has no anchor. |
+| "I'll skip the evolution arc, the stats bar already shows the count" | The arc gives the development sequence at a glance. Only omit for single-commit diffs. |
 | "I already explained it in chat" | The HTML document survives beyond the chat. Stakeholders can open, forward, and re-read. |
+| "A trailing sentence about scope is fine, the **Out of scope:** marker feels mechanical" | The bold marker makes the boundary scannable in under a second. A plain sentence gets buried. |
 | "I don't need the wrapper script, I'll hand-write the HTML" | Hand-writing full HTML duplicates the script's work and introduces inconsistency. Always use the script. |
-| "The script path doesn't resolve, I'll just hand-write it directly" | The script is at `scripts/html_wrap.py` relative to the skill directory. Join the skill directory path with `scripts/html_wrap.py` to get the absolute path. If it truly doesn't exist, stop and inform the user — do not adapt. |
+| "I'll put the caveats note inside a file details block" | Pull caveats into a top-level `<aside class="note">` — they're important context for anyone touching this code later. |
+| "The script path doesn't resolve, I'll just hand-write it directly" | The script is at `scripts/html_wrap.py` relative to the skill directory. If it truly doesn't exist, stop and inform the user — do not adapt. |
 | "The summary table takes too long to write" | 3-5 rows take 2 minutes and save readers 10x that in comprehension time. |
 | "Caveats section is negative / I don't want to highlight tradeoffs" | The caveats section builds trust. Omitting it makes the review look incomplete. |
 | "The evolution arc is redundant — the commit subjects tell the whole story" | The arc gives the development sequence at a glance without forcing the reader to mentally reconstruct it from raw hashes and subjects. Only omit for single-commit diffs. |
-| "I'll skip the **Out of scope:** marker and just mention what's not changing in the text" | The bold marker makes the boundary scannable in under a second. A plain sentence gets buried in the paragraph — a cold reader has to re-read the whole thing to find it. |
+| "This merge adds..." (for feature-branch merges) | Use "This branch" or "This change set" — the merge commit didn't do the work. |

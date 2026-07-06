@@ -13,12 +13,9 @@ npx skills add B-R-P/explain-diff
 ```text
 skills/explain-diff/
 ├── SKILL.md                    # Instructions agents should follow
-├── scripts/
-│   ├── html_wrap.py            # Converts an HTML snippet into a complete document
-│   └── README.md               # Script-specific notes
-└── references/
-    ├── html-structure.md       # Required HTML structure for generated reviews
-    └── test-scenarios.md       # Scenarios for checking agent behavior
+└── scripts/
+    ├── html_wrap.py            # Converts an HTML snippet into a complete document
+    └── README.md               # Script-specific notes
 ```
 
 ## What agents produce
