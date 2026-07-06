@@ -22,6 +22,7 @@ Use ONLY `<section>` as the root wrapper. Never `<div>`, `<article>`, or `<main>
 |---------|-----|---------------------|
 | Executive summary header | `<header>` | — |
 | Stats bar | `<p class="stats">` | `class="stats"` |
+| Commit evolution arc | `<p>` | — |
 | Section heading | `<h2>` | — |
 | Sub-heading | `<h3>` | — |
 | Paragraph | `<p>` | — |
@@ -158,11 +159,11 @@ Use this sparingly — only when 6+ bullets would otherwise make a flat list har
 <header>
   <span class="badge badge-warning">Mixed</span>
   <h2>Incremental grouped-row loading, table scroll containment, …</h2>
-  <p>One or two sentences explaining what the PR achieves and its business impact.</p>
+  <p>One or two sentences explaining what the PR achieves and its business impact. <strong>Out of scope:</strong> existing chart generation and clearing are unaffected.</p>
 </header>
 ```
 
-The first sentence must stand alone — readers expand nothing and still understand the change.
+The first sentence must stand alone — readers expand nothing and still understand the change. The paragraph must end with **Out of scope:** followed by what stayed the same. This makes the boundary scannable for a cold reader.
 
 ## Stats Bar
 
@@ -173,6 +174,20 @@ A one-liner in the `<header>` giving the reader an instant sense of change magni
 ```
 
 Always include: files changed, net lines added/removed, commit count. Use `·` (middle dot) as separator. Omit the stats bar only if the diff has a single file and a single commit (redundant with the badge).
+
+## Commit Evolution
+
+A one-line prose summary of the commit sequence, placed between the stats bar and the `<h2>` in the executive summary header. Gives the reader the development arc at a glance — no individual hashes.
+
+```html
+<p class="stats">3 files · +142/−31 · 2 commits</p>
+<p>added field → migrated data → removed old logic</p>
+<h2>Incremental grouped-row loading, table scroll containment, …</h2>
+```
+
+The arcs use `→` (arrow, `→`) between steps. For single-commit diffs, omit this line entirely. For merge commits, summarize only the feature branch commits (non-merge steps).
+
+No special CSS needed — rendered as a normal paragraph between the stats bar and the heading.
 
 ## Dark Mode Compatibility
 

@@ -39,7 +39,7 @@ Explain code changes by generating a self-contained HTML document with progressi
 
 ### Phase 1 — Analyze the Diff
 
-1. Run `git log --oneline <ref>` to understand commit scope. For merge commits, use `<ref>^` (first parent) as the comparison base. Count only non-merge commits in the branch range — use `git log --oneline --no-merges <ref>^1..<ref>^2` for merge commits. If the count includes merge commits, annotate as `X feature commits (+Y merges)`.
+1. Run `git log --oneline <ref>` to understand commit scope. For merge commits, use `<ref>^` (first parent) as the comparison base. Count only non-merge commits in the branch range — use `git log --oneline --no-merges <ref>^1..<ref>^2` for merge commits. If the count includes merge commits, annotate as `X feature commits (+Y merges)`. Save the commit subjects — they form the evolution arc in the output header.
 2. Run `git log --format="--- %h %s%n%b" <range>` to read full commit bodies (description, rationale, ticket links, breaking change notes). On Unix, pipe through `head -200` to limit output; on Windows (PowerShell), use `Select-Object -First 200`.
 3. Run `git diff <range>` or `git show --stat <commit>` to see files changed and line counts. For merge commits, diff against the first parent: `git diff <ref>^..<ref>`.
 4. Read full diff. Categorise each change:
@@ -75,6 +75,7 @@ Organise the explanation into these sections (in order):
 |---------|---------|
 | Executive summary | 2-sentence what + why. First line a badge for change scope, followed by a stats bar (files · +N/−M · commits). |
 | Impact table | Before-vs-After comparison for key architectural/behavioural metrics. Limit to 3-7 rows — one behavioural difference per row. Prioritize user-facing behavior changes over internal refactors. If stuck, choose rows that answer "what does a user or API consumer notice?" For very small diffs (1 file, <20 lines), 2-4 rows is appropriate. If the diff has no user-facing behavior change (pure refactor, rename, config-only, revert), state that explicitly in the executive summary and focus the impact table on developer-facing metrics (API shape, import paths, build steps). Limit to 2-4 rows. |
+| Commit evolution | Prose summary of the commit sequence (e.g., `added field → migrated data → removed old logic`). Placed between the stats bar and the `<h2>` in the header. Gives the reader the development arc at a glance — no individual hashes. For merge commits, summarize only the feature branch commits (non-merge). |
 | File breakdown | One `<details>` accordion per file (or per group of related files) with bulleted change list. See grouping guidance below. |
 | Caveats & Tradeoffs | `<aside class="note">` design decisions made, tradeoffs accepted, alternatives considered, and footguns for future editors touching this code. If a bullet describes intended behavior without a risk angle, it's not a caveat. If no meaningful caveats apply, include the `<aside>` with the text "None identified" — the section must still be present. For very small diffs, limit to 1-2 real caveats — do not manufacture them just to fill space. |
 
@@ -95,11 +96,12 @@ Write a fragment beginning with `<section>` — no `<html>`, `<head>`, `<body>` 
 
 ```
 <section>                              # root wrapper
-  <header>                             # executive summary (badge + stats + h2 + p)
+  <header>                             # executive summary (badge + stats + evolution + h2 + p)
     <span class="badge badge-*">
     <p class="stats">                  # "3 files · +142/−31 · 2 commits"
+    <p>                                # evolution: added field → migrated data → removed old logic
     <h2>
-    <p>                                # what changed + why, and what's NOT changing
+    <p>                                # what changed + why; ends with **Out of scope:** marker
   </header>
 
   <section>                            # impact table
@@ -121,7 +123,7 @@ Write a fragment beginning with `<section>` — no `<html>`, `<head>`, `<body>` 
 </section>
 ```
 
-The executive summary's paragraph should end with a sentence scoping what is NOT changing (e.g., "Existing chart generation and clearing are unaffected."). This prevents readers from assuming broader impact.
+The executive summary's paragraph should end with **Out of scope:** followed by what stayed the same (e.g., "**Out of scope:** Existing chart generation and clearing are unaffected."). This makes the boundary scannable — a cold reader can find it in seconds.
 
 **Badge colour conventions (PR scope header badge):**
 
@@ -172,6 +174,7 @@ The script:
 - Click every `<details>` accordion — each opens and closes.
 - Confirm `<aside class="note">` renders with the blue left border.
 - Confirm the `<table class="impact">` columns align.
+- Does the evolution arc accurately summarize the commit sequence?
 
 **Content-quality checks:**
 - Does every impact row contrast exactly **one** behavioral or architectural difference?
@@ -179,7 +182,7 @@ The script:
 - Does the first sentence of the executive summary make sense on its own?
 - Are any red flags from the commit audit (reverts, missing tests) reflected in the caveats section?
 - Does the primary feature description explain the mechanism or flow, not just a checklist of added pieces?
-- Does the executive summary anchor scope by acknowledging what stayed the same?
+- Does the executive summary anchor scope with an **Out of scope:** marker stating what stayed the same?
 - **Permission/access-control scan:** Check if the diff contains permission or access-control changes (role checks, route guards, conditional rendering flags). Even 1–2 line changes here often carry more behavioral weight than their diff size suggests.
 - **Accessibility scan:** If the diff introduces CSS transitions or animations, verify the output includes or acknowledges `@media (prefers-reduced-motion: reduce)` support.
 - **Fact-check pass:** Re-read the diff to verify: file paths, line counts, variable names, code snippets, numeric counts, and formatting strings in the impact table and caveats are accurate. If a caveat references a specific constant or value, confirm it exists in the diff.
@@ -203,6 +206,10 @@ python scripts/html_wrap.py /tmp/snippet.html -o review.html --title "PR Review"
 python scripts/html_wrap.py /tmp/snippet.html -o review.html --open
 ```
 
+**Evolution arc:** From the saved commit subjects, produce a `→`-separated summary (e.g., `added field → migrated data → removed old logic`). Place it between the stats bar and `<h2>`. Omit for single-commit diffs.
+
+**Out of scope:** End the header paragraph with `**Out of scope:**` followed by what stayed the same.
+
 ## Common Mistakes
 
 | Mistake | Fix |
@@ -214,7 +221,7 @@ python scripts/html_wrap.py /tmp/snippet.html -o review.html --open
 | One massive `<ul>` with all 40 changes | Group by file with `<details>` — one accordion per file |
 | Using `style="..."` for everything | Use the semantic classes (`.badge-*`, `.note`) — they come with dark mode support |
 | Describing the main feature as disconnected bullet points without showing how pieces connect | Use prose or numbered steps showing the end-to-end flow (trigger → state → output) |
-| Listing only what changed without anchoring what stayed the same | End the executive summary with a sentence scoping what's not affected |
+| Listing only what changed without anchoring what stayed the same | End the executive summary paragraph with **Out of scope:** followed by what's not affected |
 | Writing impact rows for a pure refactor as if behavior changed | State "no user-facing change" and focus impact on API/developer metrics instead |
 | Misreading `\ No newline at end of file` as an EOF fix | Compare both old and new sections of the diff — the marker appears on both sides; neither side may have changed |
 
@@ -226,6 +233,8 @@ Stop and re-read the skill if you catch yourself thinking:
 - "The HTML rules are too much for a small diff"
 - "I can inline all styles since the user won't notice"
 - "This change is simple enough to skip the executive summary"
+- "I'll skip the evolution arc, the stats bar already shows the count"
+- "A trailing sentence about scope is fine, the **Out of scope:** marker feels mechanical"
 - "I'll put the caveats note inside a file details block"
 - "The script path doesn't resolve, I'll just hand-write the HTML directly"
 - "This merge adds..." when the diff is a feature-branch merge (use "This branch" or "This change set")
@@ -243,3 +252,5 @@ Stop and re-read the skill if you catch yourself thinking:
 | "The script path doesn't resolve, I'll just hand-write it directly" | The script is at `scripts/html_wrap.py` relative to the skill directory. Join the skill directory path with `scripts/html_wrap.py` to get the absolute path. If it truly doesn't exist, stop and inform the user — do not adapt. |
 | "The summary table takes too long to write" | 3-5 rows take 2 minutes and save readers 10x that in comprehension time. |
 | "Caveats section is negative / I don't want to highlight tradeoffs" | The caveats section builds trust. Omitting it makes the review look incomplete. |
+| "The evolution arc is redundant — the commit subjects tell the whole story" | The arc gives the development sequence at a glance without forcing the reader to mentally reconstruct it from raw hashes and subjects. Only omit for single-commit diffs. |
+| "I'll skip the **Out of scope:** marker and just mention what's not changing in the text" | The bold marker makes the boundary scannable in under a second. A plain sentence gets buried in the paragraph — a cold reader has to re-read the whole thing to find it. |
