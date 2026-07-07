@@ -29,6 +29,7 @@ TEMPLATE = """\
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
   <title>{title}</title>
 {style_block}\
 </head>
@@ -76,6 +77,7 @@ DEFAULT_STYLE = """
       background: #fafbfc; border-bottom: 1px solid #e2e5ea; transition: background 0.15s;
     }
     details summary:hover { background: #f0f2f5; }
+    details summary:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
     details[open] summary { border-bottom-color: #e2e5ea; }
     details > ul, details > ol { padding: 0.75rem 1.25rem 0.75rem 2rem; margin: 0; font-size: 0.9rem; }
     details > ul li, details > ol li { margin-bottom: 0.35rem; }
@@ -92,8 +94,8 @@ DEFAULT_STYLE = """
     p.stats { font-size: 0.8rem; color: #6b7280; margin: 0.25rem 0 0.75rem; letter-spacing: 0.02em; }
     table.impact {
       width: 100%; border-collapse: collapse; font-size: 0.88rem;
-      background: #fff; border-radius: 8px; overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      background: #fff; border-radius: 8px; overflow-x: auto;
+      display: block; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
     table.impact th {
       background: #f4f5f7; padding: 10px 14px; text-align: left;
