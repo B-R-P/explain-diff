@@ -94,8 +94,8 @@ DEFAULT_STYLE = """
     p.stats { font-size: 0.8rem; color: #6b7280; margin: 0.25rem 0 0.75rem; letter-spacing: 0.02em; }
     table.impact {
       width: 100%; border-collapse: collapse; font-size: 0.88rem;
-      background: #fff; border-radius: 8px; overflow-x: auto;
-      display: block; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      background: #fff; border-radius: 8px; overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
     table.impact th {
       background: #f4f5f7; padding: 10px 14px; text-align: left;

@@ -5,7 +5,12 @@ description: >
   comparisons, or commit histories to stakeholders who benefit from formatted
   documentation. Use when the output needs progressive disclosure (expandable
   file sections), semantic HTML structure, before/after comparison tables, and
-  caveats & tradeoffs asides. Not for raw terminal output or quick inline explanations.
+  caveats & tradeoffs asides. Not for raw terminal output or quick inline
+  explanations, single-file typos, or trivial config commits.
+allowed-tools: Bash(git:*) Bash(python:*) Read Write
+metadata:
+  author: explain-diff
+  version: "1.0.0"
 ---
 
 # Explain Diff
@@ -60,12 +65,31 @@ Explain code changes by generating a self-contained HTML document with progressi
    - **Missing test commits** — if logic changes but no tests, flag in risks
    - **Merge commits into the feature branch** — normal; just note the branch had to catch up with dev
 
-6. **Check broader context if the diff alone isn't clear** — if the
-   diff is ambiguous (e.g., a rename without surrounding lines, a
-   function call whose signature changed elsewhere, or a pattern that
-   doesn't make sense in isolation), read relevant source files for
-   clarity. Check imports, function signatures, or component hierarchy
-   as needed. This is optional — most diffs are self-sufficient.
+6. **Check if the diff reaches beyond itself** — for each meaningful change, verify your understanding is complete:
+
+   a. **Import paths changed** — do the new modules still export what the old ones did? If not, the change is incomplete.
+
+   b. **Function/API signature changed** — were all call sites updated? A renamed parameter or reordered argument silently breaks every call site outside the diff.
+
+   c. **Type/interface shape changed** — were all property accesses updated? A removed property on a shared type breaks at runtime even if the diff looks correct in isolation.
+
+   d. **Something was removed** — is anything still referencing it? Safe if unreferenced. A breaking change if references remain.
+
+   e. **Config/environment variable changed** — does every consumer expect the same shape?
+
+   f. **Permission/access-control guard changed** — what is the guard protecting? Could the new logic widen or bypass it?
+
+### Phase 1.5 — Scan for Risk Signals
+
+For every diff, flag any of these risk signals in the caveats section:
+
+- **New external dependency** — verify it's from a known publisher
+- **User input flowing into sensitive operations** — SQL, shell, file paths, HTML output. Check whether it's validated, parameterized, or escaped before use.
+- **Authorization or permission logic changed** — role checks, route guards, conditional rendering flags. Could the new logic open a path that was previously closed?
+- **Secrets or credentials in the diff** — API keys, tokens, passwords — these should never appear in version control.
+- **Rate limiting, CSRF, or validation removed from a handler** — removing safety layers without replacement is a regression, not a refactor.
+
+Skip this phase only for purely cosmetic or documentation diffs.
 
 ### Phase 2 — Structure the Content
 
@@ -229,38 +253,8 @@ python scripts/html_wrap.py /tmp/snippet.html -o review.html --open
 
 ## Common Mistakes
 
-| Mistake | Fix |
-|---------|-----|
-| Writing a full `<html>` document by hand | Write only the `<section>` fragment; let the script wrap it |
-| Using `<div>` for everything | Use semantic tags: `<header>`, `<section>`, `<details>`, `<aside>` |
-| Burying caveats & tradeoffs inside a file accordion | Pull them into a top-level `<aside class="note">` — they're important context for anyone touching this code later |
-| Forgetting `class="impact"` on the table | The default stylesheet only styles `table.impact` — plain `<table>` gets no formatting |
-| One massive `<ul>` with all 40 changes | Group by file with `<details>` — one accordion per file |
-| Using `style="..."` for everything | Use the semantic classes (`.badge-*`, `.note`) — they come with dark mode support |
-| Describing the main feature as disconnected bullet points without showing how pieces connect | Use prose or numbered steps showing the end-to-end flow (trigger → state → output) |
-| Listing only what changed without anchoring what stayed the same | End the executive summary paragraph with **Out of scope:** followed by what's not affected |
-| Writing impact rows for a pure refactor as if behavior changed | State "no user-facing change" and focus impact on API/developer metrics instead |
-| Misreading `\ No newline at end of file` as an EOF fix | Compare both old and new sections of the diff — the marker appears on both sides; neither side may have changed |
-| Inline `<style>` blocks in the snippet | The wrapper script injects all styles — never embed `<style>` tags in the snippet |
-| Empty `<details>` accordion | If a file has no meaningful changes to list, skip it |
-| `<br>` for layout | Use CSS or flexbox instead |
-| Nested `<section>` without a parent heading | Each `<section>` should have a logical heading or be preceded by one |
+See [`references/common-mistakes.md`](./references/common-mistakes.md) for the full catalog. The most important rule: always write a `<section>` fragment — never a full `<html>` document. The wrapper script handles the shell.
 
 ## Red Flags & Rationalizations
 
-| Rationalization | Redirect |
-|----------------|----------|
-| "The diff is small, markdown is fine" | HTML with progressive disclosure is always better for non-terminal audiences. The script makes it zero effort. |
-| "The HTML rules are too much for a small diff" | All phases apply regardless of diff size — impact table has fewer rows, caveats may be "None identified." |
-| "I can inline all styles since the user won't notice" | Use semantic classes (`.badge-*`, `.note`) — they include dark mode support. The script injects the stylesheet. |
-| "This change is simple enough to skip the executive summary" | The executive summary is the first thing stakeholders read. Without it, the review has no anchor. |
-| "I'll skip the evolution arc, the stats bar already shows the count" | The arc gives the development sequence at a glance. Only omit for single-commit diffs. |
-| "I already explained it in chat" | The HTML document survives beyond the chat. Stakeholders can open, forward, and re-read. |
-| "A trailing sentence about scope is fine, the **Out of scope:** marker feels mechanical" | The bold marker makes the boundary scannable in under a second. A plain sentence gets buried. |
-| "I don't need the wrapper script, I'll hand-write the HTML" | Hand-writing full HTML duplicates the script's work and introduces inconsistency. Always use the script. |
-| "I'll put the caveats note inside a file details block" | Pull caveats into a top-level `<aside class="note">` — they're important context for anyone touching this code later. |
-| "The script path doesn't resolve, I'll just hand-write it directly" | The script is at `scripts/html_wrap.py` relative to the skill directory. If it truly doesn't exist, stop and inform the user — do not adapt. |
-| "The summary table takes too long to write" | 3-5 rows take 2 minutes and save readers 10x that in comprehension time. |
-| "Caveats section is negative / I don't want to highlight tradeoffs" | The caveats section builds trust. Omitting it makes the review look incomplete. |
-| "The evolution arc is redundant — the commit subjects tell the whole story" | The arc gives the development sequence at a glance without forcing the reader to mentally reconstruct it from raw hashes and subjects. Only omit for single-commit diffs. |
-| "This merge adds..." (for feature-branch merges) | Use "This branch" or "This change set" — the merge commit didn't do the work. |
+See [`references/red-flags.md`](./references/red-flags.md). The core rule: if the wrapper script doesn't exist at the expected path, stop and inform the user — do not hand-write a full HTML document.
