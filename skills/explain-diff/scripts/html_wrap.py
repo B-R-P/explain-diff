@@ -92,6 +92,12 @@ DEFAULT_STYLE = """
     .badge-info    { background: #2563eb; }
     .badge-neutral { background: #6b7280; }
     p.stats { font-size: 0.8rem; color: #6b7280; margin: 0.25rem 0 0.75rem; letter-spacing: 0.02em; }
+    p.evolution-arc {
+      display: inline-block; padding: 0.3rem 0.75rem; margin: 0.25rem 0 0;
+      background: #edf0f4; border-radius: 20px; font-size: 0.8rem; color: #4b5563;
+    }
+    p.scope-marker { font-size: 0.85rem; color: #6b7280; margin: -0.5rem 0 0; }
+    p.scope-marker strong { color: #4b5563; }
     table.impact {
       width: 100%; border-collapse: collapse; font-size: 0.88rem;
       background: #fff; border-radius: 8px; overflow: hidden;
@@ -142,6 +148,9 @@ DEFAULT_STYLE = """
       table.impact th { background: #1e2129; border-bottom-color: #2c2f3a; }
       table.impact td { border-bottom-color: #2c2f3a; }
       p.stats { color: #9ca3af; }
+      p.evolution-arc { background: #252833; color: #9ca3af; }
+      p.scope-marker { color: #9ca3af; }
+      p.scope-marker strong { color: #d1d5db; }
       aside.warn { background: #2a2416; border-left-color: #f59e0b; }
       aside.warn h4 { color: #fbbf24; }
       aside.note { background: #1a2332; border-left-color: #3b82f6; }

@@ -99,7 +99,7 @@ Organise the explanation into these sections (in order):
 |---------|---------|
 | Executive summary | 2-sentence what + why. First line a badge for change scope, followed by a stats bar (files · +N/−M · commits). |
 | Impact table | Before-vs-After comparison for key architectural/behavioural metrics. Limit to 3-7 rows — one behavioural difference per row. Prioritize user-facing behavior changes over internal refactors. If stuck, choose rows that answer "what does a user or API consumer notice?" For very small diffs (1 file, <20 lines), 2-4 rows is appropriate. If the diff has no user-facing behavior change (pure refactor, rename, config-only, revert), state that explicitly in the executive summary and focus the impact table on developer-facing metrics (API shape, import paths, build steps). Limit to 2-4 rows. |
-| Commit evolution | Prose summary of the commit sequence (e.g., `added field → migrated data → removed old logic`). Placed between the stats bar and the `<h2>` in the header. Gives the reader the development arc at a glance — no individual hashes. For merge commits, summarize only the feature branch commits (non-merge). |
+| Commit evolution | Prose summary of the commit sequence (e.g., `added field → migrated data → removed old logic`). Placed between the stats bar and the `<h2>` in the header as `<p class="evolution-arc">`. Gives the reader the development arc at a glance — no individual hashes. For merge commits, summarize only the feature branch commits (non-merge). |
 | File breakdown | One `<details>` accordion per file (or per group of related files) with bulleted change list. See grouping guidance below. |
 | Caveats & Tradeoffs | `<aside class="note">` design decisions made, tradeoffs accepted, alternatives considered, and footguns for future editors touching this code. If a bullet describes intended behavior without a risk angle, it's not a caveat. If no meaningful caveats apply, include the `<aside>` with the text "None identified" — the section must still be present. For very small diffs, limit to 1-2 real caveats — do not manufacture them just to fill space. |
 
@@ -123,9 +123,10 @@ Write a fragment beginning with `<section>` — no `<html>`, `<head>`, `<body>` 
   <header>                             # executive summary (badge + stats + evolution + h2 + p)
     <span class="badge badge-*">
     <p class="stats">                  # "3 files · +142/−31 · 2 commits"
-    <p>                                # evolution: added field → migrated data → removed old logic
+    <p class="evolution-arc">          # evolution: added field → migrated data → removed old logic
     <h2>
-    <p>                                # what changed + why; ends with **Out of scope:** marker
+    <p>                                # what changed + why
+    <p class="scope-marker">           # **Out of scope:** what stayed the same
   </header>
 
   <section>                            # impact table
@@ -147,7 +148,7 @@ Write a fragment beginning with `<section>` — no `<html>`, `<head>`, `<body>` 
 </section>
 ```
 
-The executive summary's paragraph should end with **Out of scope:** followed by what stayed the same (e.g., "**Out of scope:** Existing chart generation and clearing are unaffected."). This makes the boundary scannable — a cold reader can find it in seconds.
+The executive summary's description paragraph should be followed by a separate `<p class="scope-marker">` block: `<strong>Out of scope:</strong>` followed by what stayed the same (e.g., "<strong>Out of scope:</strong> Existing chart generation and clearing are unaffected."). This makes the boundary scannable — a cold reader can find it in seconds.
 
 **Badge colour conventions (PR scope header badge):**
 
@@ -169,7 +170,7 @@ For files with additions only (no deletions), state explicitly in the descriptio
 |---------|-----|---------------------|
 | Executive summary header | `<header>` | — |
 | Stats bar | `<p class="stats">` | `class="stats"` |
-| Commit evolution arc | `<p>` | — |
+| Commit evolution arc | `<p class="evolution-arc">` | `class="evolution-arc"` |
 | Section heading | `<h2>` | — |
 | Sub-heading | `<h3>` | — |
 | Paragraph | `<p>` | — |
@@ -247,9 +248,9 @@ python scripts/html_wrap.py /tmp/snippet.html -o review.html --title "PR Review"
 python scripts/html_wrap.py /tmp/snippet.html -o review.html --open
 ```
 
-**Evolution arc:** From the saved commit subjects, produce a `→`-separated summary (e.g., `added field → migrated data → removed old logic`). Place it between the stats bar and `<h2>`. Omit for single-commit diffs.
+**Evolution arc:** From the saved commit subjects, produce a `→`-separated summary (e.g., `added field → migrated data → removed old logic`). Place it between the stats bar and `<h2>` as `<p class="evolution-arc">`. Omit for single-commit diffs.
 
-**Out of scope:** End the header paragraph with `**Out of scope:**` followed by what stayed the same.
+**Out of scope:** Follow the description paragraph with `<p class="scope-marker"><strong>Out of scope:</strong> ...</p>` listing what stayed the same.
 
 ## Common Mistakes
 
