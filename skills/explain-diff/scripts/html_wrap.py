@@ -62,12 +62,15 @@ DEFAULT_STYLE = """
     }
     code { font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace; }
     p code, li code { background: #eff1f5; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.85em; }
+    h2 { font-size: 1.3rem; margin: 0.75rem 0 0.5rem; color: #1a1d23; }
+    h3 { font-size: 1.05rem; margin: 0.75rem 0 0.35rem; color: #374151; }
     kbd {
       display: inline-block; padding: 0.15rem 0.5rem; font-size: 0.8em;
       font-family: 'JetBrains Mono', monospace; background: #eff1f5;
       border: 1px solid #d0d4dc; border-radius: 4px; box-shadow: 0 1px 0 #c4c8d0;
     }
     var { font-style: normal; font-weight: 600; color: #2563eb; }
+    header { margin-bottom: 1.5rem; }
     details {
       background: #fff; border: 1px solid #e2e5ea; border-radius: 8px;
       margin-bottom: 0.75rem; overflow: hidden;
@@ -81,6 +84,7 @@ DEFAULT_STYLE = """
     details[open] summary { border-bottom-color: #e2e5ea; }
     details > ul, details > ol { padding: 0.75rem 1.25rem 0.75rem 2rem; margin: 0; font-size: 0.9rem; }
     details > ul li, details > ol li { margin-bottom: 0.35rem; }
+    section + section { margin-top: 1.5rem; }
     .badge {
       display: inline-block; padding: 3px 12px; border-radius: 20px;
       font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
@@ -139,6 +143,8 @@ DEFAULT_STYLE = """
     }
     @media (prefers-color-scheme: dark) {
       body { background: #12141a; color: #e4e7ec; }
+      h2 { color: #e4e7ec; }
+      h3 { color: #9ca3af; }
       details { background: #1a1d26; border-color: #2c2f3a; }
       details summary { background: #1e2129; border-bottom-color: #2c2f3a; color: #e4e7ec; }
       details summary:hover { background: #252833; }
