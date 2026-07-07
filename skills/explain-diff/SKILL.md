@@ -98,9 +98,9 @@ Organise the explanation into these sections (in order):
 | Section | Purpose |
 |---------|---------|
 | Executive summary | 2-sentence what + why. First line a badge for change scope, followed by a stats bar (files · +N/−M · commits). |
-| Impact table | Before-vs-After comparison for key architectural/behavioural metrics. Limit to 3-7 rows — one behavioural difference per row. Prioritize user-facing behavior changes over internal refactors. If stuck, choose rows that answer "what does a user or API consumer notice?" For very small diffs (1 file, <20 lines), 2-4 rows is appropriate. If the diff has no user-facing behavior change (pure refactor, rename, config-only, revert), state that explicitly in the executive summary and focus the impact table on developer-facing metrics (API shape, import paths, build steps). Limit to 2-4 rows. |
+| Impact table | Before-vs-After comparison for key architectural/behavioural metrics. Limit to 3-7 rows — one behavioural difference per row. Prioritize user-facing behavior changes over internal refactors. If stuck, choose rows that answer "what does a user or API consumer notice?" For very small diffs (1 file, <20 lines), 2-4 rows is appropriate. If the diff has no user-facing behavior change (pure refactor, rename, config-only, revert), state that explicitly in the executive summary and focus the impact table on developer-facing metrics (API shape, import paths, build steps). Limit to 2-4 rows. Each row should reference the file(s) that drive the change using `<var>`. |
 | Commit evolution | Prose summary of the commit sequence (e.g., `added field → migrated data → removed old logic`). Placed between the stats bar and the `<h2>` in the header as `<p class="evolution-arc">`. Gives the reader the development arc at a glance — no individual hashes. For merge commits, summarize only the feature branch commits (non-merge). |
-| File breakdown | One `<details>` accordion per file (or per group of related files) with bulleted change list. See grouping guidance below. |
+| File breakdown | One `<details>` accordion per file (or per group of related files) with bulleted change list. Preceded by an architectural layers overview that names which layers were touched (in dependency order). See grouping guidance below. |
 | Caveats & Tradeoffs | `<aside class="note">` design decisions made, tradeoffs accepted, alternatives considered, and footguns for future editors touching this code. If a bullet describes intended behavior without a risk angle, it's not a caveat. If no meaningful caveats apply, include the `<aside>` with the text "None identified" — the section must still be present. For very small diffs, limit to 1-2 real caveats — do not manufacture them just to fill space. |
 
 **Executive summary framing for merge commits:** If the diff is from a merge commit that merges a feature branch, begin the executive summary with "This branch" or "This change set" — not "This merge" — to avoid implying one commit did all the work.
@@ -132,8 +132,11 @@ Write a fragment beginning with `<section>` — no `<html>`, `<head>`, `<body>` 
   <section>                            # impact table
     <table class="impact">
       <thead><tr><th>Metric<th>Before<th>After
-      <tbody>...
+      <tbody>
+        <tr><td>metric<td>before<td>after (<var>src/file.ts</var>)
   </section>
+
+  <p>Layers affected: data layer &rarr; service layer &rarr; UI</p>
 
   <section>                            # file breakdown
       <details><summary><var>path</var> <span class="badge badge-info">+N/−M</span>
@@ -149,6 +152,10 @@ Write a fragment beginning with `<section>` — no `<html>`, `<head>`, `<body>` 
 ```
 
 The executive summary's description paragraph should be followed by a separate `<p class="scope-marker">` block: `<strong>Out of scope:</strong>` followed by what stayed the same (e.g., "<strong>Out of scope:</strong> Existing chart generation and clearing are unaffected."). This makes the boundary scannable — a cold reader can find it in seconds.
+
+**Impact table — file references:** Append `<var>path/to/file.ts</var>` to each After cell to show which files drive the metric. Use commas for multiple files. This lets the reader cross-reference from "what changed" to "where" without searching.
+
+**Architectural layers overview:** Between the impact table and file breakdown, include a `<p>` summarizing which architecture layers were touched (e.g., "Layers affected: data layer → service layer → UI"). List them in dependency order (deepest first) so the reader builds a mental model of the change's reach before seeing individual files.
 
 **Badge colour conventions (PR scope header badge):**
 
@@ -217,6 +224,8 @@ The script:
 - Confirm `<aside class="note">` renders with the blue left border.
 - Confirm the `<table class="impact">` columns align.
 - Does the evolution arc accurately summarize the commit sequence?
+- Does the architectural layers overview (below the impact table) correctly name the affected layers in dependency order?
+- Does every impact cell that references a file use `<var>` and match an existing accordion?
 
 **Content-quality checks:**
 - Does every impact row contrast exactly **one** behavioral or architectural difference?
