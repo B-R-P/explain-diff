@@ -79,6 +79,8 @@ Explain code changes by generating a self-contained HTML document with progressi
 
    f. **Permission/access-control guard changed** — what is the guard protecting? Could the new logic widen or bypass it?
 
+7. **Gather supplementary context** — Check whether the current session or available documents contain useful information beyond the diff: rationale from discussion, ticket IDs, related changes, deployment notes. Only include context that is directly verifiable (commit body, user statement, referenced document) and relevant. Discard anything that conflicts with the diff or can't be sourced. If nothing is available or verifiable, skip this step — do not fabricate.
+
 ### Phase 1.5 — Scan for Risk Signals
 
 For every diff, flag any of these risk signals in the caveats section:
@@ -156,6 +158,8 @@ The executive summary's description paragraph should be followed by a separate `
 **Impact table — file references:** Append `<var>path/to/file.ts</var>` to each After cell to show which files drive the metric. Use commas for multiple files. This lets the reader cross-reference from "what changed" to "where" without searching.
 
 **Architectural layers overview:** Between the impact table and file breakdown, include a `<p>` summarizing which architecture layers were touched (e.g., "Layers affected: data layer → service layer → UI"). List them in dependency order (deepest first) so the reader builds a mental model of the change's reach before seeing individual files.
+
+**Supplementary context (if gathered):** Weave small references (ticket links, rationale) into the executive summary paragraph. Place substantial context (related PR summary, deployment note) after the caveats section as a plain `<p>`, prefixed with an italic source label — e.g., `<em>From session:</em>`, `<em>From commit body:</em>`, `<em>From design doc:</em>` — so the reader can assess provenance at a glance.
 
 **Badge colour conventions (PR scope header badge):**
 
