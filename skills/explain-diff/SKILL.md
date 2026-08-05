@@ -44,10 +44,10 @@ Explain code changes by generating a self-contained HTML document with progressi
 
 ### Phase 1 — Analyze the Diff
 
-1. Run `git log --oneline <ref>` to understand commit scope. For merge commits, use `<ref>^` (first parent) as the comparison base. Count only non-merge commits in the branch range — use `git log --oneline --no-merges <ref>^1..<ref>^2` for merge commits. If the count includes merge commits, annotate as `X feature commits (+Y merges)`. Save the commit subjects — they form the evolution arc in the output header.
-2. Run `git log --format="--- %h %s%n%b" <range>` to read full commit bodies (description, rationale, ticket links, breaking change notes). On Unix, pipe through `head -200` to limit output; on Windows (PowerShell), use `Select-Object -First 200`.
-3. Run `git diff <range>` or `git show --stat <commit>` to see files changed and line counts. For merge commits, diff against the first parent: `git diff <ref>^..<ref>`.
-4. Read full diff. Categorise each change:
+1. Run `git log --oneline <ref>` to understand commit scope. For merge commits, use `<ref>^` (first parent) as the comparison base. Count only non-merge commits in the branch range — use `git log --oneline --no-merges <ref>^1..<ref>^2` for merge commits. If the count includes merge commits, annotate as `X feature commits (+Y merges)`. Save the commit subjects to a file (e.g. `git log --oneline <range> > commits.txt`) — they form the evolution arc in the output header.
+2. Run `git log --format="--- %h %s%n%b" <range>` to read full commit bodies (description, rationale, ticket links, breaking change notes), saving to a file (e.g. `> commit-bodies.txt`). On Unix, pipe through `head -200` to limit output; on Windows (PowerShell), use `Select-Object -First 200`.
+3. Run `git diff <range>` or `git show --stat <commit>` to see files changed and line counts, saving the full diff to a file (e.g. `> diff.txt`). For merge commits, diff against the first parent: `git diff <ref>^..<ref>`.
+4. Read full diff. For files exceeding +200 lines, read imports and exports first to understand dependencies, then scan logical section breaks (component sub-headings, `if`/`switch` branches) before writing the breakdown. Categorise each change:
    - **Feature logic** — new functionality or modified behaviour
    - **Refactor** — restructuring without behaviour change
    - **Revert** — the change undoes previous work; flag in risks
@@ -81,17 +81,16 @@ Explain code changes by generating a self-contained HTML document with progressi
 
 7. **Gather supplementary context** — Check whether the current session or available documents contain useful information beyond the diff: rationale from discussion, ticket IDs, related changes, deployment notes. Only include context that is directly verifiable (commit body, user statement, referenced document) and relevant. Discard anything that conflicts with the diff or can't be sourced. If nothing is available or verifiable, skip this step — do not fabricate.
 
-### Phase 1.5 — Scan for Risk Signals
+8. **Scan for risk signals** — flag any of these in the caveats section:
+   - **New external dependency** — verify it's from a known publisher
+   - **User input flowing into sensitive operations** — SQL, shell, file paths, HTML output. Check whether it's validated, parameterized, or escaped before use.
+   - **Authorization or permission logic changed** — role checks, route guards, conditional rendering flags. Could the new logic open a path that was previously closed?
+   - **Secrets or credentials in the diff** — API keys, tokens, passwords — these should never appear in version control.
+   - **Rate limiting, CSRF, or validation removed from a handler** — removing safety layers without replacement is a regression, not a refactor.
 
-For every diff, flag any of these risk signals in the caveats section:
+   Skip this scan only for purely cosmetic or documentation diffs.
 
-- **New external dependency** — verify it's from a known publisher
-- **User input flowing into sensitive operations** — SQL, shell, file paths, HTML output. Check whether it's validated, parameterized, or escaped before use.
-- **Authorization or permission logic changed** — role checks, route guards, conditional rendering flags. Could the new logic open a path that was previously closed?
-- **Secrets or credentials in the diff** — API keys, tokens, passwords — these should never appear in version control.
-- **Rate limiting, CSRF, or validation removed from a handler** — removing safety layers without replacement is a regression, not a refactor.
-
-Skip this phase only for purely cosmetic or documentation diffs.
+**Phase 1 is complete when:** every change is categorised, the beyond-itself checks above pass, and risk signals and supplementary context are either captured or explicitly skipped.
 
 ### Phase 2 — Structure the Content
 
@@ -100,10 +99,10 @@ Organise the explanation into these sections (in order):
 | Section | Purpose |
 |---------|---------|
 | Executive summary | 2-sentence what + why. First line a badge for change scope, followed by a stats bar (files · +N/−M · commits). |
-| Impact table | Before-vs-After comparison for key architectural/behavioural metrics. Limit to 3-7 rows — one behavioural difference per row. Prioritize user-facing behavior changes over internal refactors. If stuck, choose rows that answer "what does a user or API consumer notice?" For very small diffs (1 file, <20 lines), 2-4 rows is appropriate. If the diff has no user-facing behavior change (pure refactor, rename, config-only, revert), state that explicitly in the executive summary and focus the impact table on developer-facing metrics (API shape, import paths, build steps). Limit to 2-4 rows. Each row should reference the file(s) that drive the change using `<var>`. |
+| Impact table | Before-vs-After comparison for key architectural/behavioural metrics. Limit to 3-7 rows — one behavioural difference per row. Prioritize user-facing behavior changes over internal refactors. If stuck, choose rows that answer "what does a user or API consumer notice?" For very small diffs (1 file, <20 lines), 2-4 rows is appropriate. If the diff has no user-facing behavior change (pure refactor, rename, config-only, revert), state that explicitly in the executive summary and focus the impact table on developer-facing metrics (API shape, import paths, build steps). Limit to 2-4 rows. Each row references the files that drive the change (the `<var>` syntax is specified in Phase 3). |
 | Commit evolution | Prose summary of the commit sequence (e.g., `added field → migrated data → removed old logic`). Placed between the stats bar and the `<h2>` in the header as `<p class="evolution-arc">`. Gives the reader the development arc at a glance — no individual hashes. For merge commits, summarize only the feature branch commits (non-merge). |
 | File breakdown | One `<details>` accordion per file (or per group of related files) with bulleted change list. Preceded by an architectural layers overview that names which layers were touched (in dependency order). See grouping guidance below. |
-| Caveats & Tradeoffs | `<aside class="note">` design decisions made, tradeoffs accepted, alternatives considered, and footguns for future editors touching this code. If a bullet describes intended behavior without a risk angle, it's not a caveat. If no meaningful caveats apply, include the `<aside>` with the text "None identified" — the section must still be present. For very small diffs, limit to 1-2 real caveats — do not manufacture them just to fill space. |
+| Caveats & Tradeoffs | `<aside class="note">` design decisions made, tradeoffs accepted, alternatives considered, and footguns for future editors touching this code. If a bullet describes intended behavior without a risk angle, it's not a caveat. For each caveat, ask: what happens when the assumption breaks? Surface failure modes and edge cases, not just maintenance inconvenience. If no meaningful caveats apply, include the `<aside>` with the text "None identified" — the section must still be present. For very small diffs, limit to 1-2 real caveats — do not manufacture them just to fill space. |
 
 **Executive summary framing for merge commits:** If the diff is from a merge commit that merges a feature branch, begin the executive summary with "This branch" or "This change set" — not "This merge" — to avoid implying one commit did all the work.
 
@@ -115,6 +114,8 @@ Before writing, **group related files by concern**:
 - When a change moves from a computed/view-derived value to a data-source value, call that out explicitly: "This decouples the component from internal computation and ties the behavior to the data model."
 
 For the file with the most significant logic change, describe the end-to-end flow rather than a flat bullet list. Use prose or numbered steps showing the progression (trigger → state transition → side effect → output). Reserve bullets for supporting details.
+
+**Phase 2 is complete when:** every section is planned in order, files are grouped (merged only for pure-propagation passthroughs), and the most significant change has an identified end-to-end flow.
 
 ### Phase 3 — Write the HTML Snippet
 
@@ -171,7 +172,7 @@ The executive summary's description paragraph should be followed by a separate `
 | Mixed | `badge badge-warning` |
 | Bug fix / dependency | `badge badge-neutral` |
 
-Prefer `badge-info` as a safe default for file-level badges. Avoid `badge-danger` at file level — it is reserved for the PR scope header. If a file is purely additive (all new feature code), `badge-success` may be more informative than a neutral badge.
+File-level badges: `badge-danger` is never used at file level — it is reserved for the PR scope header. Use `badge-success` for purely additive files (all new feature code), `badge-info` for refactors (the safe default), `badge-neutral` for removals, config, dependencies, and mechanical changes, and `badge-warning` for high bidirectional churn.
 
 For files with additions only (no deletions), state explicitly in the description: "All N lines are new — existing styles were untouched."
 
@@ -201,7 +202,7 @@ For files with additions only (no deletions), state explicitly in the descriptio
 
 ### Phase 4 — Wrap with Script
 
-The wrapper script is at [`scripts/html_wrap.py`](./scripts/html_wrap.py) (relative to this skill directory). Construct the full absolute path by joining the skill directory with `scripts/html_wrap.py`.
+The wrapper script is the REQUIRED TOOL named in Overview — `scripts/html_wrap.py` relative to this skill directory.
 
 ```bash
 python scripts/html_wrap.py snippet.html -o output.html --title "PR Review — <ref>"
@@ -220,55 +221,36 @@ The script:
 
 ### Phase 5 — Verify the Output
 
+Run through every check below; each must pass before the output is complete.
+
 **Structural checks:**
-- Open the HTML file in a browser.
-- Confirm the executive summary reads correctly without expanding anything.
-- Confirm the badge class matches the change scope (see badge colour conventions).
-- Click every `<details>` accordion — each opens and closes.
-- Confirm `<aside class="note">` renders with the blue left border.
-- Confirm the `<table class="impact">` columns align.
-- Does the evolution arc accurately summarize the commit sequence?
-- Does the architectural layers overview (below the impact table) correctly name the affected layers in dependency order?
-- Does every impact cell that references a file use `<var>` and match an existing accordion?
+1. Open the HTML file in a browser.
+2. Confirm the executive summary reads correctly without expanding anything.
+3. Confirm the badge class matches the change scope (see badge colour conventions).
+4. Click every `<details>` accordion — each opens and closes.
+5. Confirm `<aside class="note">` renders with the blue left border.
+6. Confirm the `<table class="impact">` columns align.
+7. Confirm the evolution arc accurately summarizes the commit sequence.
+8. Confirm the architectural layers overview (below the impact table) correctly names the affected layers in dependency order.
+9. Confirm every impact cell that references a file uses `<var>` and matches an existing accordion.
 
 **Content-quality checks:**
-- Does every impact row contrast exactly **one** behavioral or architectural difference?
-- Is every caveat a real risk, downside, or future-edit footgun (not happy-path description)?
-- Does the first sentence of the executive summary make sense on its own?
-- Are any red flags from the commit audit (reverts, missing tests) reflected in the caveats section?
-- Does the primary feature description explain the mechanism or flow, not just a checklist of added pieces?
-- Does the executive summary anchor scope with an **Out of scope:** marker stating what stayed the same?
-- **Permission/access-control scan:** Check if the diff contains permission or access-control changes (role checks, route guards, conditional rendering flags). Even 1–2 line changes here often carry more behavioral weight than their diff size suggests.
-- **Accessibility scan:** If the diff introduces CSS transitions or animations, verify the output includes or acknowledges `@media (prefers-reduced-motion: reduce)` support.
-- **Fact-check pass:** Re-read the diff to verify: file paths, line counts, variable names, code snippets, numeric counts, and formatting strings in the impact table and caveats are accurate. If a caveat references a specific constant or value, confirm it exists in the diff.
+1. Confirm every impact row contrasts exactly **one** behavioral or architectural difference.
+2. Confirm every caveat is a real risk, downside, or future-edit footgun (not happy-path description).
+3. Confirm the first sentence of the executive summary makes sense on its own.
+4. Confirm any red flags from the commit audit (reverts, missing tests) are reflected in the caveats section.
+5. Confirm the primary feature description explains the mechanism or flow, not just a checklist of added pieces.
+6. Confirm the executive summary anchors scope with an **Out of scope:** marker stating what stayed the same.
+7. **Permission/access-control scan:** Scan the diff for permission or access-control changes (role checks, route guards, conditional rendering flags); if present, confirm they are surfaced prominently. Even 1–2 line changes here often carry more behavioral weight than their diff size suggests.
+8. **Accessibility scan:** If the diff introduces CSS transitions or animations, confirm the output includes or acknowledges `@media (prefers-reduced-motion: reduce)` support.
+9. **Fact-check pass:** Re-read the diff to verify: file paths, line counts, variable names, code snippets, numeric counts, and formatting strings in the impact table and caveats are accurate. If a caveat references a specific constant or value, confirm it exists in the diff.
 
-## Quick Reference
-
-```bash
-# Basic workflow
-git log --oneline HEAD~3..HEAD > /tmp/commits.txt
-git log --format="--- %h %s%n%b" HEAD~3..HEAD > /tmp/commit-bodies.txt
-git diff HEAD~3..HEAD > /tmp/diff.txt
-
-# Merge commit: feature branch commits (non-merge only)
-git log --oneline --no-merges <ref>^1..<ref>^2 > /tmp/commits.txt
-
-# Merge commit: full diff against first parent
-git diff <ref>^..<ref> > /tmp/diff.txt
-
-# Generate snippet → wrap → open
-python scripts/html_wrap.py /tmp/snippet.html -o review.html --title "PR Review"
-python scripts/html_wrap.py /tmp/snippet.html -o review.html --open
-```
-
-**Evolution arc:** From the saved commit subjects, produce a `→`-separated summary (e.g., `added field → migrated data → removed old logic`). Place it between the stats bar and `<h2>` as `<p class="evolution-arc">`. Omit for single-commit diffs.
-
-**Out of scope:** Follow the description paragraph with `<p class="scope-marker"><strong>Out of scope:</strong> ...</p>` listing what stayed the same.
+**Phase 5 is complete when:** every check above passes — resolve any failure before delivering the output.
 
 ## Common Mistakes
 
-See [`references/common-mistakes.md`](./references/common-mistakes.md) for the full catalog. The most important rule: always write a `<section>` fragment — never a full `<html>` document. The wrapper script handles the shell.
+See [`references/common-mistakes.md`](./references/common-mistakes.md) for the catalog of HTML construction errors — what a wrong output looks like. The most common: writing a full `<html>` document instead of a `<section>` fragment; the wrapper script handles the shell.
 
 ## Red Flags & Rationalizations
 
-See [`references/red-flags.md`](./references/red-flags.md). The core rule: if the wrapper script doesn't exist at the expected path, stop and inform the user — do not hand-write a full HTML document.
+See [`references/red-flags.md`](./references/red-flags.md) for the catalog of process rationalizations — the internal excuses for skipping a step, each paired with a redirect. The core guardrail: if the wrapper script doesn't exist at the expected path, stop and inform the user — never improvise the shell.

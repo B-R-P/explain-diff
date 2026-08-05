@@ -13,6 +13,9 @@ npx skills add B-R-P/explain-diff
 ```text
 skills/explain-diff/
 ├── SKILL.md                    # Instructions agents should follow
+├── references/
+│   ├── common-mistakes.md      # Catalog of HTML construction errors
+│   └── red-flags.md            # Catalog of process rationalizations
 └── scripts/
     ├── html_wrap.py            # Converts an HTML snippet into a complete document
     └── README.md               # Script-specific notes

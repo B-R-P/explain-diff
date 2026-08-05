@@ -113,13 +113,6 @@ DEFAULT_STYLE = """
     }
     table.impact td { padding: 10px 14px; border-bottom: 1px solid #edf0f4; vertical-align: top; }
     table.impact tr:last-child td { border-bottom: none; }
-    aside.warn {
-      margin: 1.75rem 0; padding: 1.1rem 1.25rem;
-      border-left: 4px solid #f59e0b; background: #fffbeb; border-radius: 8px; font-size: 0.9rem;
-    }
-    aside.warn h4 { margin: 0 0 0.5rem; color: #92400e; }
-    aside.warn ul { margin: 0; padding-left: 1.25rem; }
-    aside.warn ul li { margin-bottom: 0.35rem; }
     aside.note {
       margin: 1.75rem 0; padding: 1.1rem 1.25rem;
       border-left: 4px solid #2563eb; background: #eff6ff; border-radius: 8px; font-size: 0.9rem;
@@ -135,8 +128,6 @@ DEFAULT_STYLE = """
       .badge { border: 1px solid #666; color: #000 !important; background: #eee !important; }
       kbd { border-color: #999; box-shadow: none; }
       pre { background: #f5f5f5; color: #000; border: 1px solid #ccc; }
-      aside.warn { border-left-color: #f59e0b; background: #fffbe6; }
-      aside.warn h4 { color: #92400e; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
@@ -157,8 +148,6 @@ DEFAULT_STYLE = """
       p.evolution-arc { background: #252833; color: #9ca3af; }
       p.scope-marker { color: #9ca3af; }
       p.scope-marker strong { color: #d1d5db; }
-      aside.warn { background: #2a2416; border-left-color: #f59e0b; }
-      aside.warn h4 { color: #fbbf24; }
       aside.note { background: #1a2332; border-left-color: #3b82f6; }
       aside.note h3 { color: #93c5fd; }
       .badge-warning { background: #d97706; }
