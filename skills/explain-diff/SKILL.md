@@ -142,9 +142,10 @@ Write a fragment beginning with `<section>` — no `<html>`, `<head>`, `<body>` 
   <p>Layers affected: data layer &rarr; service layer &rarr; UI</p>
 
   <section>                            # file breakdown
-      <details><summary><var>path</var> <span class="badge badge-info">+N/−M</span>
+      <details><summary><var>path</var> <span class="badge badge-info">+N/−M</span></summary>
         <h3>Subsystem name</h3>           # optional: group related changes in large files
         <ul><li>...
+    </details>
     </section>
 
   <aside class="note">                 # caveats & tradeoffs
