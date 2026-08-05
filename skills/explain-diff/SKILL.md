@@ -34,13 +34,30 @@ Explain code changes by generating a self-contained HTML document with progressi
 - Cases where plain Markdown in the chat is sufficient
 - Internal engineering notes that will never be shared externally
 
+## Tone — Ask the User First
+
+Before writing anything, ask the user which tone the HTML should use. Offer these options (put the recommended one first and append " (Recommended)"):
+
+- **Highly technical, understandable** (recommended) — keeps real function names, APIs, and mechanism detail, but written so a smart non-author can follow; every term that matters is explained in context.
+- **Deeply technical** — assumes a working engineer audience; raw symbols, exact call flows, tradeoffs in full detail; minimal translation to plain language.
+- **Accessible / business-focused** — leads with user-facing impact, minimizes code identifiers, uses plain-language descriptions and analogies.
+
+**The same change, all three tones** — the calibration target for every section:
+
+> **Deeply technical:** `processPayment()` is split into `validateCart()` → `chargeCustomer()` → `createOrder()`. The old single-function path caught `PaymentError` internally and returned `{ success: false }`; the split path lets `chargeCustomer()` throw, so callers that relied on the return shape will now see uncaught exceptions.
+> **Highly technical, understandable:** `processPayment()` is now three separate steps: validate the cart, charge the customer, then create the order. Before, all three ran inside one function and errors were swallowed into a `success: false` return. Now the charge step throws exceptions, so code that checked the return value needs to catch errors instead.
+> **Accessible / business-focused:** The checkout flow is now three stages — cart validation, payment, and order creation. Previously, payment failures were silently absorbed; now they surface as clear errors, so automation that depended on the old flat response needs updating.
+
+Hold the chosen register across every section — executive summary, impact table, file breakdown, and caveats. If the user declines to choose, default to **highly technical, understandable**.
+
 ## Workflow
 
-1. **Analyze the diff** — read commit logs and full diff, categorise each change
-2. **Structure the content** — organise into executive summary, impact table, file breakdown, risks
-3. **Write the HTML snippet** — author a `<section>` fragment with semantic tags
-4. **Wrap with script** — run `html_wrap.py` to produce a complete HTML document
-5. **Verify the output** — open in browser, check accordions, table, and caveats aside
+1. **Confirm the tone** — ask the user which tone the HTML should use (see [Tone — Ask the User First](#tone--ask-the-user-first)); default if they decline
+2. **Analyze the diff** — read commit logs and full diff, categorise each change
+3. **Structure the content** — organise into executive summary, impact table, file breakdown, risks
+4. **Write the HTML snippet** — author a `<section>` fragment with semantic tags
+5. **Wrap with script** — run `html_wrap.py` to produce a complete HTML document
+6. **Verify the output** — open in browser, check accordions, table, and caveats aside
 
 ### Phase 1 — Analyze the Diff
 
