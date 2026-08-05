@@ -34,6 +34,8 @@ Explain code changes by generating a self-contained HTML document with progressi
 - Cases where plain Markdown in the chat is sufficient
 - Internal engineering notes that will never be shared externally
 
+The last two are the important guardrails — a model-invoked skill must not fire on trivial or ephemeral requests.
+
 ## Tone — Ask the User First
 
 Before writing anything, ask the user which tone the HTML should use. Offer these options (put the recommended one first and append " (Recommended)"):
@@ -57,7 +59,7 @@ Hold the chosen register across every section — executive summary, impact tabl
 3. **Structure the content** — organise into executive summary, impact table, file breakdown, risks
 4. **Write the HTML snippet** — author a `<section>` fragment with semantic tags
 5. **Wrap with script** — run `html_wrap.py` to produce a complete HTML document
-6. **Verify the output** — open in browser, check accordions, table, and caveats aside
+6. **Verify the output** — open in browser, check `<details>` accordions, table, and caveats aside
 
 ### Phase 1 — Analyze the Diff
 
@@ -118,19 +120,21 @@ Organise the explanation into these sections (in order):
 | Executive summary | 2-sentence what + why. First line a badge for change scope, followed by a stats bar (files · +N/−M · commits). |
 | Impact table | Before-vs-After comparison for key architectural/behavioural metrics. Limit to 3-7 rows — one behavioural difference per row. Prioritize user-facing behavior changes over internal refactors. If stuck, choose rows that answer "what does a user or API consumer notice?" For very small diffs (1 file, <20 lines), 2-4 rows is appropriate. If the diff has no user-facing behavior change (pure refactor, rename, config-only, revert), state that explicitly in the executive summary and focus the impact table on developer-facing metrics (API shape, import paths, build steps). Limit to 2-4 rows. Each row references the files that drive the change (the `<var>` syntax is specified in Phase 3). |
 | Commit evolution | Prose summary of the commit sequence (e.g., `added field → migrated data → removed old logic`). Placed between the stats bar and the `<h2>` in the header as `<p class="evolution-arc">`. Gives the reader the development arc at a glance — no individual hashes. For merge commits, summarize only the feature branch commits (non-merge). |
-| File breakdown | One `<details>` accordion per file (or per group of related files) with bulleted change list. Preceded by an architectural layers overview that names which layers were touched (in dependency order). See grouping guidance below. |
+| File breakdown | One `<details>` per file (or per group of related files) with bulleted change list. Preceded by an architectural layers overview that names which layers were touched (in dependency order). See grouping guidance below. |
 | Caveats & Tradeoffs | `<aside class="note">` design decisions made, tradeoffs accepted, alternatives considered, and footguns for future editors touching this code. If a bullet describes intended behavior without a risk angle, it's not a caveat. For each caveat, ask: what happens when the assumption breaks? Surface failure modes and edge cases, not just maintenance inconvenience. If no meaningful caveats apply, include the `<aside>` with the text "None identified" — the section must still be present. For very small diffs, limit to 1-2 real caveats — do not manufacture them just to fill space. |
 
 **Executive summary framing for merge commits:** If the diff is from a merge commit that merges a feature branch, begin the executive summary with "This branch" or "This change set" — not "This merge" — to avoid implying one commit did all the work.
 
 Before writing, **group related files by concern**:
-- **Pure-propagation passthroughs** (e.g., forwarding a prop through 3 components, or 15 files with the same mechanical import rename) — merge into a single `<details>` accordion. Use `<h3>` sub-headings to separate per-file details.
-- **Files with independent logic changes** — each gets its own `<details>` accordion.
+- **Pure-propagation passthroughs** (e.g., forwarding a prop through 3 components, or 15 files with the same mechanical import rename) — merge into a single `<details>`. Use `<h3>` sub-headings to separate per-file details.
+- **Files with independent logic changes** — each gets its own `<details>`.
 - When deciding: if the change is the same mechanical operation repeated across files, merge them. If each file has unique logic changes, keep them separate.
 - If supporting files serve entirely different architectural concerns (data layer vs navigation vs configuration), split them or use `<h3>` sub-headings naming each concern explicitly. A generic label like "Supporting layer" invites the reader to skip over an important nav/routing change.
 - When a change moves from a computed/view-derived value to a data-source value, call that out explicitly: "This decouples the component from internal computation and ties the behavior to the data model."
 
 For the file with the most significant logic change, describe the end-to-end flow rather than a flat bullet list. Use prose or numbered steps showing the progression (trigger → state transition → side effect → output). Reserve bullets for supporting details.
+
+**Exclusive accordions:** Give every file accordion the same `name="file-breakdown"` attribute. Opening one closes the others — keeps the file breakdown short on large PRs. The impact table's file references (`href="#file-N"`) jump straight to that accordion even when it's collapsed.
 
 **Phase 2 is complete when:** every section is planned in order, files are grouped (merged only for pure-propagation passthroughs), and the most significant change has an identified end-to-end flow.
 
@@ -151,22 +155,24 @@ Write a fragment beginning with `<section>` — no `<html>`, `<head>`, `<body>` 
 
   <section>                            # impact table
     <table class="impact">
-      <thead><tr><th>Metric<th>Before<th>After
+      <thead><tr><th scope="col">Metric</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
       <tbody>
-        <tr><td>metric<td>before<td>after (<var>src/file.ts</var>)
+        <tr><td>metric</td><td>before</td><td>after (<var><a href="#file-1">src/file.ts</a></var>)</td></tr>
+      </tbody>
+    </table>
   </section>
 
   <p>Layers affected: data layer &rarr; service layer &rarr; UI</p>
 
   <section>                            # file breakdown
-      <details><summary><var>path</var> <span class="badge badge-info">+N/−M</span></summary>
+      <details id="file-1" name="file-breakdown"><summary><var>path</var> <span class="badge badge-info">+N/−M</span></summary>
         <h3>Subsystem name</h3>           # optional: group related changes in large files
         <ul><li>...
     </details>
     </section>
 
   <aside class="note">                 # caveats & tradeoffs
-    <h3>Caveats &amp; Tradeoffs
+    <h3>Caveats &amp; Tradeoffs</h3>
     <ul><li>...
   </aside>
 </section>
@@ -174,7 +180,7 @@ Write a fragment beginning with `<section>` — no `<html>`, `<head>`, `<body>` 
 
 The executive summary's description paragraph should be followed by a separate `<p class="scope-marker">` block: `<strong>Out of scope:</strong>` followed by what stayed the same (e.g., "<strong>Out of scope:</strong> Existing chart generation and clearing are unaffected."). This makes the boundary scannable — a cold reader can find it in seconds.
 
-**Impact table — file references:** Append `<var>path/to/file.ts</var>` to each After cell to show which files drive the metric. Use commas for multiple files. This lets the reader cross-reference from "what changed" to "where" without searching.
+**Impact table — file references:** Append `<var><a href="#file-N">path/to/file.ts</a></var>` to each After cell to show which files drive the metric. Use commas for multiple files. Give each file accordion a matching `id="file-N"` so the references are clickable — this lets the reader jump from "what changed" to "where" without searching.
 
 **Architectural layers overview:** Between the impact table and file breakdown, include a `<p>` summarizing which architecture layers were touched (e.g., "Layers affected: data layer → service layer → UI"). List them in dependency order (deepest first) so the reader builds a mental model of the change's reach before seeing individual files.
 
@@ -205,7 +211,7 @@ For files with additions only (no deletions), state explicitly in the descriptio
 | Sub-heading | `<h3>` | — |
 | Paragraph | `<p>` | — |
 | Impact table | `<table class="impact">` | `class="impact"` |
-| File accordion | `<details>` | — |
+| File accordion | `<details>` | `id="file-N"` |
 | File path label | `<summary><var>path</var></summary>` | — |
 | Change list | `<ul><li>` | — |
 | Caveats callout | `<aside class="note">` | `class="note"` |
@@ -245,12 +251,13 @@ Run through every check below; each must pass before the output is complete.
 1. Open the HTML file in a browser.
 2. Confirm the executive summary reads correctly without expanding anything.
 3. Confirm the badge class matches the change scope (see badge colour conventions).
-4. Click every `<details>` accordion — each opens and closes.
+4. Click every `<details>` — each opens and closes, and opening one closes the others.
 5. Confirm `<aside class="note">` renders with the blue left border.
 6. Confirm the `<table class="impact">` columns align.
 7. Confirm the evolution arc accurately summarizes the commit sequence.
 8. Confirm the architectural layers overview (below the impact table) correctly names the affected layers in dependency order.
-9. Confirm every impact cell that references a file uses `<var>` and matches an existing accordion.
+9. Confirm every impact cell that references a file uses `<var><a href="#file-N">` and the link jumps to a matching `<details>` `id`.
+10. Run print preview — confirm all file details are visible in print (`<details>` are forced open).
 
 **Content-quality checks:**
 1. Confirm every impact row contrasts exactly **one** behavioral or architectural difference.

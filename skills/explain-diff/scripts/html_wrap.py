@@ -50,6 +50,7 @@ DEFAULT_STYLE = """
       padding: 2rem 1.5rem;
       max-width: 960px;
       margin: 0 auto;
+      overflow-wrap: anywhere;
     }
     pre {
       background: #1e2129;
@@ -90,8 +91,8 @@ DEFAULT_STYLE = """
       font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
       letter-spacing: 0.04em; color: #fff;
     }
-    .badge-warning { background: #f59e0b; }
-    .badge-success { background: #16a34a; }
+    .badge-warning { background: #b45309; }
+    .badge-success { background: #15803d; }
     .badge-danger  { background: #dc2626; }
     .badge-info    { background: #2563eb; }
     .badge-neutral { background: #6b7280; }
@@ -125,6 +126,7 @@ DEFAULT_STYLE = """
       details { border: 1px solid #ccc; break-inside: avoid; }
       details summary { background: #f5f5f5; border-bottom: 1px solid #ccc; }
       details[open] { break-inside: avoid; }
+      details > *:not(summary) { display: block !important; }
       .badge { border: 1px solid #666; color: #000 !important; background: #eee !important; }
       kbd { border-color: #999; box-shadow: none; }
       pre { background: #f5f5f5; color: #000; border: 1px solid #ccc; }
@@ -150,7 +152,11 @@ DEFAULT_STYLE = """
       p.scope-marker strong { color: #d1d5db; }
       aside.note { background: #1a2332; border-left-color: #3b82f6; }
       aside.note h3 { color: #93c5fd; }
+      var { color: #60a5fa; }
       .badge-warning { background: #d97706; }
+    }
+    @media (max-width: 640px) {
+      table.impact { display: block; overflow-x: auto; }
     }
   </style>"""
 
