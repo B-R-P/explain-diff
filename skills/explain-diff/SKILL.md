@@ -1,12 +1,11 @@
 ---
 name: explain-diff
 description: >
-  Use when explaining code changes from git diffs, pull requests, branch
-  comparisons, or commit histories to stakeholders who benefit from formatted
-  documentation. Use when the output needs progressive disclosure (expandable
-  file sections), semantic HTML structure, before/after comparison tables, and
-  caveats & tradeoffs asides. Not for raw terminal output or quick inline
-  explanations, single-file typos, or trivial config commits.
+  Use ONLY when the user explicitly asks for a self-contained HTML document
+  explaining a git diff, PR, or commit history — e.g. requests mentioning
+  "HTML report", "shareable doc", or an artifact to attach to a ticket/email.
+  Do NOT use for plain diff summaries, branch overviews, or review requests
+  where a chat/markdown answer suffices.
 allowed-tools: Bash(git:*) Bash(python:*) Read Write
 metadata:
   author: explain-diff
